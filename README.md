@@ -26,6 +26,16 @@ The viewer is based on [PDF.js](https://mozilla.github.io/pdf.js/) and runs enti
 - **Colour settings:** accent colour, toolbar background, toolbar text and page background; adjustable flip duration
 - Per-file settings for a custom title, a description or hiding a file
 
+## Screenshots
+
+| | |
+|---|---|
+| ![Flipbook double page](assets/screenshots/01-flipbook-spread.png) | ![Page overview](assets/screenshots/02-page-overview.png) |
+| ![Full-text search](assets/screenshots/03-full-text-search.png) | ![Custom colours](assets/screenshots/04-custom-colours.png) |
+| ![Module: downloads layout and list](assets/screenshots/06-module-downloads-and-list.png) | ![Module: grid layout with custom accent colour](assets/screenshots/07-module-grid-custom-accent.png) |
+
+The sample catalogues used in the screenshots are fictitious.
+
 ## Requirements
 
 - Joomla 5.x or 6.x
