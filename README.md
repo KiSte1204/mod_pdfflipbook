@@ -1,3 +1,5 @@
+![PDF Flipbook Catalogs](assets/banner-1200x630.png)
+
 # PDF Flipbook Catalogs for Joomla
 
 A Joomla site module that lists your PDF catalogues per language – with an automatically generated cover thumbnail – and opens them in a built-in **flipbook viewer**.
