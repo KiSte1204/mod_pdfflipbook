@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<extension type="module" client="site" method="upgrade">
+    <name>MOD_PDFFLIPBOOK</name>
+    <author>Stefan Kirchhoff</author>
+    <authorUrl>https://www.webkiste.net/</authorUrl>
+    <creationDate>2026-11</creationDate>
+    <copyright>(C) 2026 Stefan Kirchhoff, webkiste.net</copyright>
+    <license>GNU General Public License version 2 or later; see LICENSE.txt</license>
+    <version>1.0.1</version>
+    <description>MOD_PDFFLIPBOOK_XML_DESCRIPTION</description>
+    <namespace path="src">Webkiste\Module\PdfFlipbook</namespace>
+
+    <files>
+        <folder module="mod_pdfflipbook">services</folder>
+        <folder>src</folder>
+        <folder>tmpl</folder>
+        <folder>language</folder>
+    </files>
+
+    <media destination="mod_pdfflipbook" folder="media">
+        <folder>css</folder>
+        <folder>viewer</folder>
+    </media>
+
+    <changelogurl>https://raw.githubusercontent.com/KiSte1204/mod_pdfflipbook/main/updates/changelog.xml</changelogurl>
+
+    <updateservers>
+        <server type="extension" priority="1" name="PDF Flipbook Catalogs">https://raw.githubusercontent.com/KiSte1204/mod_pdfflipbook/main/updates/mod_pdfflipbook.xml</server>
+    </updateservers>
+
+    <config>
+        <fields name="params">
+            <fieldset name="basic">
+                <field
+                    name="folder"
+                    type="text"
+                    default="images/flipbooks"
+                    label="MOD_PDFFLIPBOOK_FIELD_FOLDER_LABEL"
+                    description="MOD_PDFFLIPBOOK_FIELD_FOLDER_DESC"
+                    required="true"
+                />
+                <field
+                    name="scope"
+                    type="list"
+                    default="current"
+                    label="MOD_PDFFLIPBOOK_FIELD_SCOPE_LABEL"
+                    description="MOD_PDFFLIPBOOK_FIELD_SCOPE_DESC"
+                    >
+                    <option value="current">MOD_PDFFLIPBOOK_SCOPE_CURRENT</option>
+                    <option value="all">MOD_PDFFLIPBOOK_SCOPE_ALL</option>
+                </field>
+                <field
+                    name="fallback_lang"
+                    type="text"
+                    default="en"
+                    label="MOD_PDFFLIPBOOK_FIELD_FALLBACK_LABEL"
+                    description="MOD_PDFFLIPBOOK_FIELD_FALLBACK_DESC"
+                    filter="word"
+                    maxlength="5"
+                />
+                <field
+                    name="show_intro"
+                    type="radio"
+                    layout="joomla.form.field.radio.switcher"
+                    default="1"
+                    label="MOD_PDFFLIPBOOK_FIELD_SHOWINTRO_LABEL"
+                    description="MOD_PDFFLIPBOOK_FIELD_SHOWINTRO_DESC"
+                    >
+                    <option value="0">JNO</option>
+                    <option value="1">JYES</option>
+                </field>
+                <field
+                    name="intro"
+                    showon="show_intro:1"
+                    type="textarea"
+                    rows="3"
+                    label="MOD_PDFFLIPBOOK_FIELD_INTRO_LABEL"
+                    description="MOD_PDFFLIPBOOK_FIELD_INTRO_DESC"
+                    filter="safehtml"
+                />
+                <field
+                    name="show_download"
+                    type="radio"
+                    layout="joomla.form.field.radio.switcher"
+                    default="0"
+                    label="MOD_PDFFLIPBOOK_FIELD_DOWNLOAD_LABEL"
+                    description="MOD_PDFFLIPBOOK_FIELD_DOWNLOAD_DESC"
+                    >
+                    <option value="0">JNO</option>
+                    <option value="1">JYES</option>
+                </field>
+                <field
+                    name="target"
+                    type="list"
+                    default="_blank"
+                    label="MOD_PDFFLIPBOOK_FIELD_TARGET_LABEL"
+                    >
+                    <option value="_blank">MOD_PDFFLIPBOOK_TARGET_BLANK</option>
+                    <option value="_self">MOD_PDFFLIPBOOK_TARGET_SELF</option>
+                </field>
+            </fieldset>
+
+            <fieldset name="files" label="MOD_PDFFLIPBOOK_FIELDSET_OVERRIDES">
+                <field
+                    name="overrides"
+                    type="subform"
+                    multiple="true"
+                    layout="joomla.form.field.subform.repeatable-table"
+                    label="MOD_PDFFLIPBOOK_FIELD_OVERRIDES_LABEL"
+                    description="MOD_PDFFLIPBOOK_FIELD_OVERRIDES_DESC"
+                    >
+                    <form>
+                        <field
+                            name="file"
+                            type="text"
+                            label="MOD_PDFFLIPBOOK_FIELD_OV_FILE_LABEL"
+                            hint="en/10_Main_Catalogue_2026_EN.pdf"
+                        />
+                        <field
+                            name="title"
+                            type="text"
+                            label="MOD_PDFFLIPBOOK_FIELD_OV_TITLE_LABEL"
+                        />
+                        <field
+                            name="description"
+                            type="textarea"
+                            rows="2"
+                            label="MOD_PDFFLIPBOOK_FIELD_OV_DESC_LABEL"
+                            hint="MOD_PDFFLIPBOOK_FIELD_OV_DESC_HINT"
+                        />
+                        <field
+                            name="hide"
+                            type="radio"
+                            layout="joomla.form.field.radio.switcher"
+                            default="0"
+                            label="MOD_PDFFLIPBOOK_FIELD_OV_HIDE_LABEL"
+                            >
+                            <option value="0">JNO</option>
+                            <option value="1">JYES</option>
+                        </field>
+                    </form>
+                </field>
+            </fieldset>
+
+            <fieldset name="viewer" label="MOD_PDFFLIPBOOK_FIELDSET_VIEWER">
+                <field
+                    name="viewer_url"
+                    type="text"
+                    default=""
+                    hint="MOD_PDFFLIPBOOK_FIELD_VIEWER_HINT"
+                    label="MOD_PDFFLIPBOOK_FIELD_VIEWER_LABEL"
+                    description="MOD_PDFFLIPBOOK_FIELD_VIEWER_DESC"
+                />
+                <field
+                    name="thumb_width"
+                    type="number"
+                    default="160"
+                    min="80"
+                    max="800"
+                    step="10"
+                    label="MOD_PDFFLIPBOOK_FIELD_THUMBWIDTH_LABEL"
+                    description="MOD_PDFFLIPBOOK_FIELD_THUMBWIDTH_DESC"
+                    filter="integer"
+                />
+            </fieldset>
+
+            <fieldset name="appearance" label="MOD_PDFFLIPBOOK_FIELDSET_APPEARANCE">
+                <field
+                    name="accent_color"
+                    type="color"
+                    default="#2a6fdb"
+                    label="MOD_PDFFLIPBOOK_FIELD_ACCENT_LABEL"
+                    description="MOD_PDFFLIPBOOK_FIELD_ACCENT_DESC"
+                />
+                <field
+                    name="bar_bg"
+                    type="color"
+                    default="#1f2328"
+                    label="MOD_PDFFLIPBOOK_FIELD_BARBG_LABEL"
+                    description="MOD_PDFFLIPBOOK_FIELD_BARBG_DESC"
+                />
+                <field
+                    name="bar_fg"
+                    type="color"
+                    default="#f2f2f2"
+                    label="MOD_PDFFLIPBOOK_FIELD_BARFG_LABEL"
+                    description="MOD_PDFFLIPBOOK_FIELD_BARFG_DESC"
+                />
+                <field
+                    name="stage_bg"
+                    type="color"
+                    default="#e9ecef"
+                    label="MOD_PDFFLIPBOOK_FIELD_STAGEBG_LABEL"
+                    description="MOD_PDFFLIPBOOK_FIELD_STAGEBG_DESC"
+                />
+                <field
+                    name="color_module"
+                    type="radio"
+                    layout="joomla.form.field.radio.switcher"
+                    default="1"
+                    label="MOD_PDFFLIPBOOK_FIELD_COLORMODULE_LABEL"
+                    description="MOD_PDFFLIPBOOK_FIELD_COLORMODULE_DESC"
+                    >
+                    <option value="0">JNO</option>
+                    <option value="1">JYES</option>
+                </field>
+                <field
+                    name="flip_ms"
+                    type="number"
+                    default="800"
+                    min="100"
+                    max="3000"
+                    step="50"
+                    label="MOD_PDFFLIPBOOK_FIELD_FLIP_LABEL"
+                    description="MOD_PDFFLIPBOOK_FIELD_FLIP_DESC"
+                    filter="integer"
+                />
+            </fieldset>
+
+            <fieldset name="advanced">
+                <field
+                    name="layout"
+                    type="modulelayout"
+                    label="JFIELD_ALT_LAYOUT_LABEL"
+                    class="form-select"
+                    validate="moduleLayout"
+                />
+                <field
+                    name="moduleclass_sfx"
+                    type="textarea"
+                    label="COM_MODULES_FIELD_MODULECLASS_SFX_LABEL"
+                    rows="3"
+                    validate="CssIdentifier"
+                />
+                <field
+                    name="cache"
+                    type="list"
+                    default="1"
+                    label="COM_MODULES_FIELD_CACHING_LABEL"
+                    >
+                    <option value="1">JGLOBAL_USE_GLOBAL</option>
+                    <option value="0">COM_MODULES_FIELD_VALUE_NOCACHING</option>
+                </field>
+                <field
+                    name="cache_time"
+                    type="number"
+                    default="900"
+                    label="COM_MODULES_FIELD_CACHE_TIME_LABEL"
+                    filter="integer"
+                />
+                <field
+                    name="cachemode"
+                    type="hidden"
+                    default="static"
+                    >
+                    <option value="static"></option>
+                </field>
+            </fieldset>
+        </fields>
+    </config>
+</extension>

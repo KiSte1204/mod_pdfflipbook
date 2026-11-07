@@ -1,0 +1,119 @@
+/* mod_pdfflipbook – (C) 2026 Stefan Kirchhoff, webkiste.net – GPL-2.0-or-later */
+.mod-pdfflipbook { --pfb-accent: #2a6fdb; --pfb-accent-dark: #2259b4; }
+.mod-pdfflipbook__intro { margin-bottom: 1.25rem; text-align: center; }
+
+.mod-pdfflipbook__items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.75rem;
+  text-align: center;
+}
+
+.mod-pdfflipbook__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  max-width: 100%;
+}
+
+.mod-pdfflipbook__link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  max-width: 100%;
+  color: inherit;
+  text-decoration: none;
+}
+
+.mod-pdfflipbook__title { line-height: 1.35; font-weight: 600; }
+.mod-pdfflipbook__desc { line-height: 1.4; margin-top: -0.35rem; }
+.mod-pdfflipbook__link:hover .mod-pdfflipbook__title,
+.mod-pdfflipbook__link:focus-visible .mod-pdfflipbook__title { text-decoration: underline; }
+
+.mod-pdfflipbook__thumb,
+.mod-pdfflipbook__nothumb {
+  display: block;
+  max-width: 100% !important;
+  height: auto;
+  border-bottom: 4px solid var(--pfb-accent);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mod-pdfflipbook__link:hover .mod-pdfflipbook__thumb,
+.mod-pdfflipbook__link:focus-visible .mod-pdfflipbook__thumb,
+.mod-pdfflipbook__link:hover .mod-pdfflipbook__nothumb {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.22);
+}
+
+.mod-pdfflipbook__nothumb {
+  aspect-ratio: 210 / 297;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f1f1f1;
+  color: #999;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+}
+
+.mod-pdfflipbook__download { font-size: 0.85em; }
+.mod-pdfflipbook__size { opacity: 0.7; }
+
+/* Raster */
+.mod-pdfflipbook--grid .mod-pdfflipbook__items {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  align-items: start;
+  justify-items: center;
+  gap: 2rem 1.5rem;
+}
+
+/* Downloads (Textliste) */
+.mod-pdfflipbook--downloads .mod-pdfflipbook__group + .mod-pdfflipbook__group { margin-top: 1.75rem; }
+.mod-pdfflipbook__lang { margin: 0 0 0.5rem; font-size: 1.1rem; }
+.mod-pdfflipbook__table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+.mod-pdfflipbook__table th.mod-pdfflipbook__col-size { width: 6.5rem; }
+.mod-pdfflipbook__table th.mod-pdfflipbook__col-date { width: 7rem; }
+.mod-pdfflipbook__table th.mod-pdfflipbook__col-actions { width: 14.5rem; }
+.mod-pdfflipbook .visually-hidden { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.mod-pdfflipbook__table th,
+.mod-pdfflipbook__table td { padding: 0.6rem 0.5rem; border-bottom: 1px solid rgba(0, 0, 0, 0.12); text-align: left; vertical-align: middle; }
+.mod-pdfflipbook__table th { font-size: 0.85em; font-weight: 600; opacity: 0.75; }
+.mod-pdfflipbook__table .mod-pdfflipbook__desc { margin-top: 0.2rem; font-size: 0.85em; opacity: 0.8; }
+.mod-pdfflipbook__col-title a { font-weight: 600; }
+.mod-pdfflipbook__col-size,
+.mod-pdfflipbook__col-date { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.mod-pdfflipbook__col-actions { white-space: nowrap; text-align: right !important; }
+.mod-pdfflipbook__btn {
+  display: inline-block;
+  margin-left: 0.35rem;
+  padding: 0.35rem 0.8rem;
+  border: 1px solid var(--pfb-accent);
+  border-radius: 4px;
+  font-size: 0.85em;
+  line-height: 1.3;
+  text-decoration: none;
+  color: var(--pfb-accent-dark);
+  background: transparent;
+}
+.mod-pdfflipbook__btn--open { background: var(--pfb-accent); color: #fff; }
+.mod-pdfflipbook__btn:hover, .mod-pdfflipbook__btn:focus-visible { background: var(--pfb-accent-dark); border-color: var(--pfb-accent-dark); color: #fff; }
+
+@media (max-width: 640px) {
+  .mod-pdfflipbook__table { table-layout: auto; }
+  .mod-pdfflipbook__table thead { display: none; }
+  .mod-pdfflipbook__table, .mod-pdfflipbook__table tbody, .mod-pdfflipbook__table tr, .mod-pdfflipbook__table td { display: block; width: 100%; }
+  .mod-pdfflipbook__table tr { padding: 0.6rem 0; border-bottom: 1px solid rgba(0, 0, 0, 0.12); }
+  .mod-pdfflipbook__table td { border: 0; padding: 0.15rem 0; }
+  .mod-pdfflipbook__col-size, .mod-pdfflipbook__col-date { display: inline-block !important; width: auto !important; margin-right: 0.75rem; font-size: 0.85em; opacity: 0.8; }
+  .mod-pdfflipbook__col-actions { text-align: left !important; padding-top: 0.4rem !important; }
+  .mod-pdfflipbook__btn { margin: 0 0.35rem 0 0; }
+}

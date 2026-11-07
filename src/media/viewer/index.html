@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Flipbook</title>
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="flipbook.css?v=1.0.0">
+</head>
+<body>
+  <div class="bk" id="bk">
+    <header class="bk-bar">
+      <div class="bk-title" id="bk-title"></div>
+
+      <nav class="bk-nav">
+        <button type="button" class="bk-btn" id="bk-first" data-i18n-title="first">
+          <svg viewBox="0 0 24 24"><path d="M18 6l-6 6 6 6M11 6l-6 6 6 6"/></svg>
+        </button>
+        <button type="button" class="bk-btn" id="bk-prev" data-i18n-title="prev">
+          <svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg>
+        </button>
+        <label class="bk-pageinfo">
+          <span class="bk-sr" data-i18n="goTo"></span>
+          <input type="text" inputmode="numeric" id="bk-pageinput" autocomplete="off">
+          <span id="bk-pagetotal"></span>
+        </label>
+        <button type="button" class="bk-btn" id="bk-next" data-i18n-title="next">
+          <svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>
+        </button>
+        <button type="button" class="bk-btn" id="bk-last" data-i18n-title="last">
+          <svg viewBox="0 0 24 24"><path d="M6 6l6 6-6 6M13 6l6 6-6 6"/></svg>
+        </button>
+      </nav>
+
+      <div class="bk-tools">
+        <button type="button" class="bk-btn" id="bk-overview-btn" data-i18n-title="overview">
+          <svg viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6"/><rect x="14" y="4" width="6" height="6"/><rect x="4" y="14" width="6" height="6"/><rect x="14" y="14" width="6" height="6"/></svg>
+        </button>
+        <button type="button" class="bk-btn" id="bk-search-btn" data-i18n-title="search">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/></svg>
+        </button>
+        <button type="button" class="bk-btn" id="bk-zoom-btn" data-i18n-title="zoom">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5M11 8v6M8 11h6"/></svg>
+        </button>
+        <button type="button" class="bk-btn" id="bk-fs-btn" data-i18n-title="fullscreen">
+          <svg viewBox="0 0 24 24"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></svg>
+        </button>
+        <a class="bk-btn" id="bk-download" download data-i18n-title="download">
+          <svg viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>
+        </a>
+        <select id="bk-lang" class="bk-lang" data-i18n-title="language"></select>
+      </div>
+    </header>
+
+    <main class="bk-stage" id="bk-stage">
+      <button type="button" class="bk-arrow bk-arrow-prev" id="bk-arrow-prev" data-i18n-title="prev">
+        <svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg>
+      </button>
+      <div class="bk-book" id="bk-book">
+        <div class="bk-side bk-left" id="bk-left"></div>
+        <div class="bk-side bk-right" id="bk-right"></div>
+      </div>
+      <button type="button" class="bk-arrow bk-arrow-next" id="bk-arrow-next" data-i18n-title="next">
+        <svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>
+      </button>
+
+      <div class="bk-loading" id="bk-loading">
+        <img class="bk-loading-cover" id="bk-loading-cover" alt="" hidden>
+        <div class="bk-spinner" id="bk-spinner"></div>
+        <div class="bk-loading-info">
+          <div class="bk-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" id="bk-progress">
+            <div id="bk-progress-bar"></div>
+          </div>
+          <div class="bk-loading-text"><span id="bk-loading-text" data-i18n="loading"></span> <span id="bk-progress-pct"></span></div>
+        </div>
+      </div>
+      <!-- Page overview -->
+      <section class="bk-panel bk-overview" id="bk-overview" hidden>
+        <div class="bk-panel-head">
+          <h2 data-i18n="overview"></h2>
+          <button type="button" class="bk-btn bk-close" data-close data-i18n-title="close">
+            <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
+          </button>
+        </div>
+        <div class="bk-thumbs" id="bk-thumbs"></div>
+      </section>
+
+      <!-- Search -->
+      <section class="bk-panel bk-search" id="bk-search" hidden>
+        <div class="bk-panel-head">
+          <h2 data-i18n="search"></h2>
+          <button type="button" class="bk-btn bk-close" data-close data-i18n-title="close">
+            <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
+          </button>
+        </div>
+        <form class="bk-searchform" id="bk-searchform">
+          <input type="search" id="bk-searchinput" data-i18n-placeholder="searchPlaceholder" autocomplete="off">
+          <button type="submit" class="bk-btn" data-i18n-title="search">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/></svg>
+          </button>
+        </form>
+        <div class="bk-searchstatus" id="bk-searchstatus" aria-live="polite"></div>
+        <ol class="bk-results" id="bk-results"></ol>
+      </section>
+    </main>
+
+    <!-- Zoom -->
+    <section class="bk-zoom" id="bk-zoom" hidden>
+      <div class="bk-zoom-bar">
+        <button type="button" class="bk-btn" id="bk-zoom-out" data-i18n-title="zoomOut">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5M8 11h6"/></svg>
+        </button>
+        <button type="button" class="bk-btn" id="bk-zoom-in" data-i18n-title="zoomIn">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5M11 8v6M8 11h6"/></svg>
+        </button>
+        <button type="button" class="bk-btn bk-close" data-close data-i18n-title="close">
+          <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </div>
+      <div class="bk-zoom-scroll" id="bk-zoom-scroll">
+        <div class="bk-zoom-pages" id="bk-zoom-pages"></div>
+      </div>
+    </section>
+  </div>
+
+  <script type="module" src="flipbook.js?v=1.0.0"></script>
+</body>
+</html>

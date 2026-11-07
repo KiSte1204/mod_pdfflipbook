@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<updates>
+    <update>
+        <name>PDF Flipbook Catalogs</name>
+        <description>PDF Flipbook Catalogs – flipbook viewer for PDF catalogues</description>
+        <element>mod_pdfflipbook</element>
+        <type>module</type>
+        <client>site</client>
+        <version>1.0.1</version>
+        <infourl title="PDF Flipbook Catalogs">https://github.com/KiSte1204/mod_pdfflipbook</infourl>
+        <downloads>
+            <downloadurl type="full" format="zip">https://github.com/KiSte1204/mod_pdfflipbook/releases/download/v1.0.1/mod_pdfflipbook-1.0.1.zip</downloadurl>
+        </downloads>
+        <sha256>3db644c035eb8d6a2da040981983760da15a829fe7377f790e26a93df34b9cd7</sha256>
+        <tags>
+            <tag>stable</tag>
+        </tags>
+        <maintainer>Stefan Kirchhoff</maintainer>
+        <maintainerurl>https://www.webkiste.net/</maintainerurl>
+        <targetplatform name="joomla" version="(5|6)\..*"/>
+        <php_minimum>8.1</php_minimum>
+    </update>
+</updates>

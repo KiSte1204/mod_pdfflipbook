@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<changelogs>
+    <changelog>
+        <element>mod_pdfflipbook</element>
+        <type>module</type>
+        <version>1.0.1</version>
+        <addition>
+            <item>Single-language sites: PDFs can be placed directly in the main folder when there are no language subfolders.</item>
+            <item>Setup notice for logged-in administrators when the folder does not exist or no PDFs were found.</item>
+        </addition>
+        <change>
+            <item>Clearer description of the folder structure in the module settings and the documentation.</item>
+        </change>
+    </changelog>
+    <changelog>
+        <element>mod_pdfflipbook</element>
+        <type>module</type>
+        <version>1.0.0</version>
+        <addition>
+            <item>First public release: PDF catalogue list (list, grid and downloads layouts) with cover thumbnails.</item>
+            <item>Built-in flipbook viewer based on PDF.js 6.2.108 – no external services, no cookies, no tracking.</item>
+            <item>Colour settings for accent, toolbar and page background; adjustable flip duration.</item>
+            <item>Viewer interface in 10 languages (DE, EN, FR, ES, IT, NL, PL, PT, CS, TR).</item>
+        </addition>
+    </changelog>
+</changelogs>
