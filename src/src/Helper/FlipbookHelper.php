@@ -34,8 +34,21 @@ class FlipbookHelper
      */
     public ?array $notice = null;
 
+    /**
+     * Problem with the access protection (shown to administrators only), null if everything is fine.
+     *
+     * @var  array{0: string, 1: string}|null  [language key, folder]
+     */
+    public ?array $warning = null;
+
     /** Thumbnail cache (relative to the Joomla root) */
     public const THUMB_DIR = 'media/mod_pdfflipbook/thumbs';
+
+    /** Thumbnails of protected catalogues are kept in this subfolder of the catalogue folder */
+    public const PROTECTED_THUMB_DIR = '.thumbs';
+
+    /** Marker in the .htaccess written by this module */
+    public const HTACCESS_MARKER = '# mod_pdfflipbook: protected catalogue folder';
 
     /** Built-in viewer (relative to the Joomla root) */
     public const VIEWER_PATH = 'media/mod_pdfflipbook/viewer/index.html';
@@ -63,14 +76,16 @@ class FlipbookHelper
      *
      * @return  object[]
      */
-    public function getItems(Registry $params, $app): array
+    public function getItems(Registry $params, $app, int $moduleId = 0): array
     {
-        $pageLang = strtolower(substr((string) $app->getLanguage()->getTag(), 0, 2));
-        $fallback = strtolower(trim((string) $params->get('fallback_lang', 'en'))) ?: 'en';
-        $folder   = trim(str_replace('\\', '/', (string) $params->get('folder', 'images/flipbooks')), '/');
+        $pageLang  = strtolower(substr((string) $app->getLanguage()->getTag(), 0, 2));
+        $fallback  = strtolower(trim((string) $params->get('fallback_lang', 'en'))) ?: 'en';
+        $folder    = self::folderSetting($params);
+        $protected = $moduleId > 0 && self::isProtected($params);
 
-        $base         = self::resolveFolder(JPATH_ROOT, $folder);
-        $this->notice = null;
+        $base          = self::sourceFolder($folder, $protected);
+        $this->notice  = null;
+        $this->warning = null;
 
         if ($base === null) {
             Log::add('Flipbook folder not found: ' . $folder, Log::WARNING, 'mod_pdfflipbook');
@@ -113,6 +128,15 @@ class FlipbookHelper
             return [];
         }
 
+        // Protected: block direct access to the folder (files are delivered through Joomla)
+        if ($protected) {
+            $problem = self::ensureProtection($base);
+
+            if ($problem !== null) {
+                $this->warning = [$problem, $folder];
+            }
+        }
+
         $overrides  = self::parseOverrides($params->get('overrides'));
         $root       = rtrim(Uri::root(true), '/');
         $viewerUrl  = self::viewerUrl((string) $params->get('viewer_url', ''), $root);
@@ -140,7 +164,9 @@ class FlipbookHelper
 
                 $title   = ($override && $override['title'] !== '') ? $override['title'] : self::buildTitle($file, $usedLang);
                 $path    = $base . '/' . $rel;
-                $pdfUrl  = $folderUrl . '/' . ($inRoot ? '' : rawurlencode($usedLang) . '/') . rawurlencode($file);
+                $pdfUrl  = $protected
+                    ? self::protectedUrl($root, $moduleId, $rel)
+                    : $folderUrl . '/' . ($inRoot ? '' : rawurlencode($usedLang) . '/') . rawurlencode($file);
 
                 $item = (object) [
                     'title'       => $title,
@@ -160,11 +186,14 @@ class FlipbookHelper
                 ];
 
                 // Vorschaubild in doppelter Auflösung (scharf auf Retina-Displays)
-                $thumb = self::thumbnail($path, $rel, $thumbWidth * 2, $makeThumbs);
+                $thumbDir = $protected ? $base . '/' . self::PROTECTED_THUMB_DIR : JPATH_ROOT . '/' . self::THUMB_DIR;
+                $thumb    = self::thumbnail($path, $rel, $thumbWidth * 2, $makeThumbs, $thumbDir);
 
                 if ($thumb !== null) {
-                    $item->thumb = $root . '/' . self::THUMB_DIR . '/' . $thumb;
-                    $size        = @getimagesize(JPATH_ROOT . '/' . self::THUMB_DIR . '/' . $thumb);
+                    $item->thumb = $protected
+                        ? self::protectedUrl($root, $moduleId, $thumb, 'thumb')
+                        : $root . '/' . self::THUMB_DIR . '/' . $thumb;
+                    $size        = @getimagesize($thumbDir . '/' . $thumb);
 
                     if ($size && $size[0] > 0) {
                         $item->thumbHeight = (int) round($thumbWidth * $size[1] / $size[0]);
@@ -184,6 +213,151 @@ class FlipbookHelper
     // ------------------------------------------------------------------
     // Reine Hilfsfunktionen (ohne Joomla-Abhängigkeiten, einzeln testbar)
     // ------------------------------------------------------------------
+
+    public static function folderSetting(Registry $params): string
+    {
+        $folder = trim(str_replace('\\', '/', (string) $params->get('folder', 'images/flipbooks')));
+
+        // Absolute paths keep their leading slash (only allowed for protected catalogues)
+        return self::isAbsolute($folder) ? rtrim($folder, '/') : trim($folder, '/');
+    }
+
+    public static function isProtected(Registry $params): bool
+    {
+        return (int) $params->get('protect', 0) === 1;
+    }
+
+    public static function isAbsolute(string $path): bool
+    {
+        return str_starts_with($path, '/') || (bool) preg_match('#^[A-Za-z]:/#', $path);
+    }
+
+    /**
+     * Catalogue folder: inside the Joomla root, or – for protected catalogues only –
+     * an absolute path anywhere on the server (e.g. outside the web root).
+     */
+    public static function sourceFolder(string $folder, bool $protected): ?string
+    {
+        if ($protected && self::isAbsolute($folder)) {
+            $real = realpath($folder);
+
+            if ($real !== false && is_dir($real)) {
+                return $real;
+            }
+        }
+
+        // "/images/flipbooks" is read relative to the Joomla root as before
+        return self::resolveFolder(JPATH_ROOT, ltrim($folder, '/'));
+    }
+
+    /**
+     * Address under which Joomla delivers a protected file after checking the access level.
+     */
+    public static function protectedUrl(string $root, int $moduleId, string $file, string $type = 'pdf'): string
+    {
+        $args = ['option' => 'com_ajax', 'module' => 'pdfflipbook', 'method' => 'file', 'format' => 'raw', 'id' => $moduleId];
+
+        if ($type === 'thumb') {
+            $args['t'] = 'thumb';
+        }
+
+        $args['f'] = $file;
+
+        return $root . '/index.php?' . http_build_query($args, '', '&', PHP_QUERY_RFC3986);
+    }
+
+    /**
+     * Blocks direct web access to a protected folder inside the web root.
+     *
+     * @return  string|null  Language key of a problem, null if the folder is protected
+     */
+    public static function ensureProtection(string $base, ?string $webRoot = null, ?string $server = null): ?string
+    {
+        $webRoot = realpath($webRoot ?? JPATH_ROOT) ?: '';
+        $server  = strtolower($server ?? (string) ($_SERVER['SERVER_SOFTWARE'] ?? ''));
+
+        // Outside the web root nobody can reach the files directly
+        if ($webRoot === '' || !str_starts_with($base . '/', rtrim($webRoot, '/') . '/')) {
+            return null;
+        }
+
+        $file = $base . '/.htaccess';
+        $rule = self::HTACCESS_MARKER . "\n"
+            . "# Files are only delivered through Joomla after checking the access level.\n"
+            . "<IfModule mod_authz_core.c>\n    Require all denied\n</IfModule>\n"
+            . "<IfModule !mod_authz_core.c>\n    Order deny,allow\n    Deny from all\n</IfModule>\n";
+
+        $current = is_file($file) ? (string) @file_get_contents($file) : '';
+
+        if (!str_contains($current, self::HTACCESS_MARKER)) {
+            if ($current !== '' || @file_put_contents($file, $rule) === false) {
+                // Existing foreign .htaccess is left alone; the administrator has to check it
+                return $current !== '' ? 'MOD_PDFFLIPBOOK_WARNING_HTACCESS_FOREIGN' : 'MOD_PDFFLIPBOOK_WARNING_HTACCESS_WRITE';
+            }
+        }
+
+        if (!is_file($base . '/index.html')) {
+            @file_put_contents($base . '/index.html', '<!DOCTYPE html><title></title>');
+        }
+
+        // nginx and some other servers ignore .htaccess
+        if ($server !== '' && !str_contains($server, 'apache') && !str_contains($server, 'litespeed')) {
+            return 'MOD_PDFFLIPBOOK_WARNING_SERVER';
+        }
+
+        return null;
+    }
+
+    /**
+     * Validates a file requested through the protected delivery.
+     *
+     * @return  string|null  Absolute path, null if the file is not allowed
+     */
+    public static function protectedFile(string $base, string $file, string $type, array $overrides = []): ?string
+    {
+        $file = str_replace('\\', '/', $file);
+
+        if ($file === '' || str_contains($file, "\0") || str_starts_with($file, '/')) {
+            return null;
+        }
+
+        if ($type === 'thumb') {
+            if (!preg_match('/^[0-9a-f]{32}-\d+-\d+-v\d+\.jpg$/', $file)) {
+                return null;
+            }
+
+            $path = $base . '/' . self::PROTECTED_THUMB_DIR . '/' . $file;
+
+            return is_file($path) ? $path : null;
+        }
+
+        $parts = explode('/', $file);
+
+        // Only "<file>.pdf" or "<language>/<file>.pdf", no hidden files or folders
+        if (\count($parts) > 2 || (\count($parts) === 2 && !preg_match('/^[a-z]{2,3}$/', $parts[0]))) {
+            return null;
+        }
+
+        $name = end($parts);
+
+        if ($name === '' || $name[0] === '.' || !preg_match('/\.pdf$/i', $name)) {
+            return null;
+        }
+
+        $real = realpath($base . '/' . $file);
+
+        if ($real === false || !is_file($real) || !str_starts_with($real, rtrim($base, '/') . '/')) {
+            return null;
+        }
+
+        $override = self::findOverride($overrides, $file, $name);
+
+        if ($override && !empty($override['hide'])) {
+            return null;
+        }
+
+        return $real;
+    }
 
     /**
      * Ordner sicher auflösen: muss existieren und innerhalb des Joomla-Verzeichnisses liegen.
@@ -458,9 +632,9 @@ class FlipbookHelper
      *
      * @return  string|null  Dateiname im Vorschau-Ordner
      */
-    public static function thumbnail(string $pdfPath, string $rel, int $px, bool $generate = true): ?string
+    public static function thumbnail(string $pdfPath, string $rel, int $px, bool $generate = true, ?string $dir = null): ?string
     {
-        $dir   = JPATH_ROOT . '/' . self::THUMB_DIR;
+        $dir   = $dir ?? JPATH_ROOT . '/' . self::THUMB_DIR;
         $key   = md5(mb_strtolower(self::nfc($rel)));
         $mtime = (int) @filemtime($pdfPath);
         $name  = $key . '-' . $mtime . '-' . $px . '-v' . self::THUMB_VERSION . '.jpg';

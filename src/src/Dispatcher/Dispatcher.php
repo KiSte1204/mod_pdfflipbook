@@ -27,17 +27,34 @@ class Dispatcher extends AbstractModuleDispatcher implements HelperFactoryAwareI
         $data = parent::getLayoutData();
 
         $helper        = $this->getHelperFactory()->getHelper('FlipbookHelper');
-        $data['items'] = $helper->getItems($data['params'], $this->getApplication());
+        $data['items'] = $helper->getItems($data['params'], $this->getApplication(), (int) $this->module->id);
 
-        // Setup hint when nothing was found – only for logged-in users who may manage modules
+        // Setup hints – only for logged-in users who may manage modules
         // (Joomla does not cache module output for logged-in users, so visitors never see it)
         $data['notice'] = '';
         $user           = $this->getApplication()->getIdentity();
+        $isManager      = $user && !$user->guest
+            && ($user->authorise('core.admin') || $user->authorise('core.manage', 'com_modules'));
 
-        if (!$data['items'] && $helper->notice && $user && !$user->guest
-            && ($user->authorise('core.admin') || $user->authorise('core.manage', 'com_modules'))) {
-            [$key, $folder]  = $helper->notice;
-            $data['notice']  = Text::sprintf($key, htmlspecialchars($folder, ENT_QUOTES, 'UTF-8'));
+        if ($isManager) {
+            $hints = [];
+
+            if (!$data['items'] && $helper->notice) {
+                [$key, $folder] = $helper->notice;
+                $hints[]        = Text::sprintf($key, htmlspecialchars($folder, ENT_QUOTES, 'UTF-8'));
+            }
+
+            if ($helper->warning) {
+                [$key, $folder] = $helper->warning;
+                $hints[]        = Text::sprintf($key, htmlspecialchars($folder, ENT_QUOTES, 'UTF-8'));
+            }
+
+            // Protected files with access level "Public" are delivered to everybody
+            if (FlipbookHelper::isProtected($data['params']) && (int) $this->module->access === 1) {
+                $hints[] = Text::_('MOD_PDFFLIPBOOK_WARNING_PUBLIC');
+            }
+
+            $data['notice'] = implode('<br>', $hints);
         }
 
         // Accent colour for the module output (thumbnail border, buttons) as CSS custom properties

@@ -25,6 +25,7 @@ The viewer is based on [PDF.js](https://mozilla.github.io/pdf.js/) and runs enti
 - Three layouts: **List** (e.g. sidebar), **Grid** (catalogue page) and **Downloads** (table with size, date, browse and download buttons, optionally all languages)
 - **Colour settings:** accent colour, toolbar background, toolbar text and page background; adjustable flip duration
 - Per-file settings for a custom title, a description or hiding a file
+- **Protected catalogues** (e.g. price lists for dealers): only visitors with the module's access level can open the PDFs – direct links to the files are blocked
 
 ## Screenshots
 
@@ -111,6 +112,23 @@ If the module finds no PDFs it outputs nothing for visitors. **Administrators wh
 | | Use accent colour in the module | Off = style the module via your template CSS (`--pfb-accent`, `--pfb-accent-dark`) |
 | | Flip duration | 100–3000 ms, default 800 |
 
+## Protected catalogues (e.g. price lists)
+
+For PDFs that only logged-in users may see – price lists, POS material with prices, dealer documents:
+
+1. Put the PDFs into a **separate folder** with the usual language subfolders, e.g. `images/flipbooks-protected/de/`.
+2. Create a second module, enter this folder and switch on **Protect files**.
+3. Set the module's **Access** (tab *Module*) to *Registered* or a special access level, e.g. *Dealers*.
+
+What happens:
+
+- The module writes a `.htaccess` into the folder that blocks all direct access (Apache, LiteSpeed). A link such as `/images/flipbooks-protected/de/price-list.pdf` returns *403 Forbidden* – even for someone who knows the address.
+- The module and the viewer load PDFs and cover thumbnails through `index.php?option=com_ajax&module=pdfflipbook&method=file…`. Joomla first checks whether the visitor has the module's access level; otherwise it answers with *403*. The files are sent with `Cache-Control: private` and `X-Robots-Tag: noindex`.
+- Thumbnails of protected catalogues are stored in the hidden subfolder `.thumbs` of the protected folder instead of the public thumbnail folder.
+- Logged-in administrators see a notice in the frontend if the folder could not be protected or if the access level is still *Public*.
+
+**nginx and other servers that ignore `.htaccess`:** enter an **absolute path outside the web root** as the folder, e.g. `/home/user/catalogues-protected`. Files there cannot be reached via the web at all; Joomla only delivers them through the access check.
+
 ## Using the viewer without the module
 
 The viewer can also be embedded directly, e.g. in an article via iframe:
@@ -145,6 +163,7 @@ The viewer can also be embedded directly, e.g. in an article via iframe:
 4. Neues Modul vom Typ *PDF Flipbook Catalogs* anlegen, Position wählen und veröffentlichen.
 5. Farben im Reiter *Darstellung* an das eigene Design anpassen.
 6. Erscheint nichts: Im Frontend als Administrator anmelden – das Modul zeigt dann einen Hinweis, in welchem Ordner es gesucht hat.
+7. **Geschützte Kataloge** (z. B. Preislisten): eigenen Ordner anlegen (z. B. `images/flipbooks-geschuetzt/de/`), ein zweites Modul mit diesem Ordner erstellen, **„Dateien schützen“** einschalten und die **Zugriffsebene** auf *Registriert* bzw. eine eigene Händlergruppe stellen. Direkte Links auf die PDFs sind dann gesperrt; Joomla liefert die Dateien nur nach Prüfung der Anmeldung aus. Auf nginx-Servern einen Ordner außerhalb des Web-Verzeichnisses mit absolutem Pfad verwenden.
 
 ## Support
 

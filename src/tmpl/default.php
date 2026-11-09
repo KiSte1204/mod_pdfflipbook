@@ -18,11 +18,12 @@
 
 use Joomla\CMS\Helper\ModuleHelper;
 
-if (empty($items)) {
-    if (!empty($notice)) {
-        echo '<div class="alert alert-warning mod-pdfflipbook__notice">' . $notice . '</div>';
-    }
+// Setup hints (only visible to administrators)
+if (!empty($notice)) {
+    echo '<div class="alert alert-warning mod-pdfflipbook__notice">' . $notice . '</div>';
+}
 
+if (empty($items)) {
     return;
 }
 
