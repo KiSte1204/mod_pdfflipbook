@@ -3,6 +3,16 @@
     <changelog>
         <element>mod_pdfflipbook</element>
         <type>module</type>
+        <version>1.2.0</version>
+        <addition>
+            <item>New tab "Order": sort the catalogues by file name ascending (as before) or descending, manually, newest first or by title.</item>
+            <item>Manual order by drag and drop (or arrow buttons) in the module settings – independent of the file names, separately for each language folder.</item>
+            <item>Files uploaded after the order was saved are marked as new and shown at the top or bottom (option "New files").</item>
+        </addition>
+    </changelog>
+    <changelog>
+        <element>mod_pdfflipbook</element>
+        <type>module</type>
         <version>1.1.0</version>
         <addition>
             <item>Protected catalogues: new option "Protect files". Only visitors with the module's access level can open the PDFs; direct links are blocked and Joomla delivers PDFs and thumbnails after an access check.</item>

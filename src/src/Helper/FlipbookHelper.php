@@ -137,6 +137,18 @@ class FlipbookHelper
             }
         }
 
+        // Sort order: "name" (number prefix / file name, default), "name_desc", "manual", "newest" or "title"
+        $sort = self::sortMode($params);
+
+        if ($sort === 'manual') {
+            $orders = self::parseOrdering($params->get('ordering', ''));
+            $newPos = $params->get('new_files', 'top') === 'bottom' ? 'bottom' : 'top';
+
+            foreach ($groups as $key => $files) {
+                $groups[$key] = self::applyOrder($files, $orders[(string) $key] ?? [], $newPos)[0];
+            }
+        }
+
         $overrides  = self::parseOverrides($params->get('overrides'));
         $root       = rtrim(Uri::root(true), '/');
         $viewerUrl  = self::viewerUrl((string) $params->get('viewer_url', ''), $root);
@@ -150,6 +162,8 @@ class FlipbookHelper
         $items = [];
 
         foreach ($groups as $usedLang => $files) {
+            $groupItems = [];
+
             // '' = PDFs directly in the main folder (site language is used for the title)
             $inRoot   = $usedLang === '';
             $usedLang = $inRoot ? $pageLang : $usedLang;
@@ -203,6 +217,10 @@ class FlipbookHelper
                     $item->viewer = self::viewerLink($viewerUrl, $pdfUrl, $pageLang, $title, $item->thumb, $style);
                 }
 
+                $groupItems[] = $item;
+            }
+
+            foreach (self::sortItems($groupItems, $sort) as $item) {
                 $items[] = $item;
             }
         }
@@ -213,6 +231,114 @@ class FlipbookHelper
     // ------------------------------------------------------------------
     // Reine Hilfsfunktionen (ohne Joomla-Abhängigkeiten, einzeln testbar)
     // ------------------------------------------------------------------
+
+    /**
+     * Sort mode from the module settings.
+     */
+    public static function sortMode(Registry $params): string
+    {
+        $sort = (string) $params->get('sort', 'name');
+
+        return \in_array($sort, ['name', 'name_desc', 'manual', 'newest', 'title'], true) ? $sort : 'name';
+    }
+
+    /**
+     * Saved manual order: {"de": ["10_a.pdf", "b.pdf"], "en": [...], "": [...]}
+     * ("" = PDFs directly in the main folder).
+     *
+     * @return  array<string, string[]>
+     */
+    public static function parseOrdering($value): array
+    {
+        if (\is_string($value)) {
+            $value = trim($value) === '' ? [] : json_decode($value, true);
+        } elseif (\is_object($value)) {
+            $value = json_decode(json_encode($value), true);
+        }
+
+        if (!\is_array($value)) {
+            return [];
+        }
+
+        $result = [];
+
+        foreach ($value as $lang => $files) {
+            $lang = (string) $lang;
+
+            if (($lang !== '' && !preg_match('/^[a-z]{2,3}$/', $lang)) || !\is_array($files)) {
+                continue;
+            }
+
+            $list = [];
+
+            foreach ($files as $file) {
+                if (\is_string($file) && $file !== '' && !str_contains($file, '/') && !str_contains($file, '\\')) {
+                    $list[] = $file;
+                }
+            }
+
+            $result[$lang] = $list;
+        }
+
+        return $result;
+    }
+
+    /**
+     * Puts the files into the saved order. Files that are not in the saved order yet
+     * ("new" files) are placed at the top or bottom in file name order;
+     * files that no longer exist are ignored.
+     *
+     * @param   string[]  $files   Existing files (already in file name order)
+     * @param   string[]  $saved   Saved order
+     * @param   string    $newPos  "top" or "bottom"
+     *
+     * @return  array{0: string[], 1: string[]}  [ordered files, new files]
+     */
+    public static function applyOrder(array $files, array $saved, string $newPos = 'top'): array
+    {
+        $byKey = [];
+
+        foreach ($files as $file) {
+            $byKey[mb_strtolower(self::nfc($file))] = $file;
+        }
+
+        $known = [];
+
+        foreach ($saved as $file) {
+            $key = mb_strtolower(self::nfc((string) $file));
+
+            if (isset($byKey[$key])) {
+                $known[] = $byKey[$key];
+                unset($byKey[$key]);
+            }
+        }
+
+        $new = array_values($byKey);
+
+        return [$newPos === 'bottom' ? array_merge($known, $new) : array_merge($new, $known), $new];
+    }
+
+    /**
+     * Sorts the items of one language group ("name" and "manual" keep the given order).
+     *
+     * @param   object[]  $items
+     *
+     * @return  object[]
+     */
+    public static function sortItems(array $items, string $sort): array
+    {
+        if ($sort === 'name_desc') {
+            usort($items, static fn ($a, $b) => strnatcasecmp(self::nfc($b->file), self::nfc($a->file)));
+        } elseif ($sort === 'newest') {
+            usort($items, static fn ($a, $b) => ($b->modified <=> $a->modified)
+                ?: strnatcasecmp(self::nfc($a->file), self::nfc($b->file)));
+        } elseif ($sort === 'title') {
+            usort($items, static fn ($a, $b) => strnatcasecmp(self::nfc($a->title), self::nfc($b->title))
+                ?: strnatcasecmp(self::nfc($a->file), self::nfc($b->file)));
+        }
+
+        return $items;
+    }
 
     public static function folderSetting(Registry $params): string
     {

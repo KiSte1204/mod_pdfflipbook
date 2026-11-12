@@ -20,7 +20,7 @@ The viewer is based on [PDF.js](https://mozilla.github.io/pdf.js/) and runs enti
 - Fullscreen, PDF download, jump to page, keyboard navigation (← → Home End), direct links to a page (`#page=12`)
 - Viewer interface in 10 languages (DE, EN, FR, ES, IT, NL, PL, PT, CS, TR)
 - **Multilingual sites:** one subfolder per language, with a fallback language
-- Titles are built from the file names, the order is set by a number prefix – no database, no backend list to maintain
+- Titles are built from the file names, the order is set by a number prefix – or **sorted by drag and drop** in the module settings, independently of the file names (per language)
 - Cover thumbnails are generated automatically (Imagick + Ghostscript) and renewed when a PDF is replaced
 - Three layouts: **List** (e.g. sidebar), **Grid** (catalogue page) and **Downloads** (table with size, date, browse and download buttons, optionally all languages)
 - **Colour settings:** accent colour, toolbar background, toolbar text and page background; adjustable flip duration
@@ -69,7 +69,7 @@ images/flipbooks/
 
 From `10_Main_Catalogue_2026_EN.pdf` the module shows **Main Catalogue 2026**:
 
-- `10_` – sort order (not displayed)
+- `10_` – sort order (not displayed; optional if you sort manually, see *Order*)
 - `_EN` – language code (not displayed)
 - `_` – becomes a space
 
@@ -95,6 +95,20 @@ If the module finds no PDFs it outputs nothing for visitors. **Administrators wh
 - The language folder has a different name than the site language (e.g. `DE` instead of `de`, or `german`) → use the lower-case two-letter code.
 - The module setting *Catalogue folder* points to a different folder.
 
+## Order
+
+In the tab **Order** choose how the catalogues are sorted:
+
+| Sort by | Order |
+|---|---|
+| File name ascending (number prefix) | Default: by the number at the beginning of the file name (`10_`, `20_` …), then alphabetically |
+| File name descending | The other way round (e.g. `2026_…` before `2025_…`) |
+| Manual | As arranged in the list below the option – drag the files or use the arrow buttons. **Each language folder has its own order.** Renaming files is not necessary |
+| Newest first | By the date of the file (last upload first) |
+| Title A–Z | Alphabetically by the displayed title |
+
+With **Manual**, files that are uploaded later are marked *new* in the list and shown **at the top** or **at the bottom** (option *New files*) until you save the order again. Deleted files simply disappear from the list. If a language falls back to another language (e.g. `en`), the order of that language folder is used.
+
 ## Settings
 
 | Tab | Setting | Description |
@@ -103,6 +117,7 @@ If the module finds no PDFs it outputs nothing for visitors. **Administrators wh
 | | Languages | *Current language* or *All languages* (e.g. for the Downloads layout) |
 | | Fallback language | Used when there are no PDFs for the page language |
 | | Intro text, download link, open in | Optional text above the list, PDF download link, new or same tab |
+| Order | Sort by, new files, manual order | File name ascending/descending, manual (drag and drop per language), newest first or title |
 | Title, description & hiding | Settings per file | Custom title, description or hide a file (`en/file.pdf` or `file.pdf`) |
 | Flipbook & thumbnail | Viewer address | Leave empty for the built-in viewer |
 | | Thumbnail width | Displayed width in px (generated at double resolution) |
@@ -159,7 +174,7 @@ The viewer can also be embedded directly, e.g. in an article via iframe:
 
 1. ZIP unter *System → Installieren → Erweiterungen* hochladen.
 2. Ordner `images/flipbooks/` anlegen, darin **je Sprache einen Unterordner** (`de`, `en` … – Kleinbuchstaben, zweistelliges Sprachkürzel) mit den PDFs. Einsprachige Seiten: PDFs direkt in `images/flipbooks/`, dann aber **ohne** Sprach-Unterordner – sobald ein Sprachordner existiert, werden PDFs im Hauptordner ignoriert.
-3. Dateinamen nach dem Muster `10_Hauptkatalog_2026_DE.pdf` vergeben: Die Nummer legt die Reihenfolge fest, das Sprachkürzel wird ausgeblendet, `_` wird zum Leerzeichen.
+3. Dateinamen nach dem Muster `10_Hauptkatalog_2026_DE.pdf` vergeben: Die Nummer legt die Reihenfolge fest, das Sprachkürzel wird ausgeblendet, `_` wird zum Leerzeichen. **Alternativ** im Reiter *Reihenfolge* „Manuell“ wählen und die Kataloge je Sprache per Ziehen anordnen – dann ist keine Nummer im Dateinamen nötig. Neu hochgeladene Dateien erscheinen wahlweise oben oder unten.
 4. Neues Modul vom Typ *PDF Flipbook Catalogs* anlegen, Position wählen und veröffentlichen.
 5. Farben im Reiter *Darstellung* an das eigene Design anpassen.
 6. Erscheint nichts: Im Frontend als Administrator anmelden – das Modul zeigt dann einen Hinweis, in welchem Ordner es gesucht hat.

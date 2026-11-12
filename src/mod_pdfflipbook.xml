@@ -6,7 +6,7 @@
     <creationDate>2026-11</creationDate>
     <copyright>(C) 2026 Stefan Kirchhoff, webkiste.net</copyright>
     <license>GNU General Public License version 2 or later; see LICENSE.txt</license>
-    <version>1.1.0</version>
+    <version>1.2.0</version>
     <description>MOD_PDFFLIPBOOK_XML_DESCRIPTION</description>
     <namespace path="src">Webkiste\Module\PdfFlipbook</namespace>
 
@@ -109,6 +109,42 @@
                     <option value="_blank">MOD_PDFFLIPBOOK_TARGET_BLANK</option>
                     <option value="_self">MOD_PDFFLIPBOOK_TARGET_SELF</option>
                 </field>
+            </fieldset>
+
+            <fieldset name="order" label="MOD_PDFFLIPBOOK_FIELDSET_ORDER" addfieldprefix="Webkiste\Module\PdfFlipbook\Site\Field">
+                <field
+                    name="sort"
+                    type="list"
+                    default="name"
+                    label="MOD_PDFFLIPBOOK_FIELD_SORT_LABEL"
+                    description="MOD_PDFFLIPBOOK_FIELD_SORT_DESC"
+                    >
+                    <option value="name">MOD_PDFFLIPBOOK_SORT_NAME</option>
+                    <option value="name_desc">MOD_PDFFLIPBOOK_SORT_NAME_DESC</option>
+                    <option value="manual">MOD_PDFFLIPBOOK_SORT_MANUAL</option>
+                    <option value="newest">MOD_PDFFLIPBOOK_SORT_NEWEST</option>
+                    <option value="title">MOD_PDFFLIPBOOK_SORT_TITLE</option>
+                </field>
+                <field
+                    name="new_files"
+                    type="radio"
+                    default="top"
+                    layout="joomla.form.field.radio.buttons"
+                    showon="sort:manual"
+                    label="MOD_PDFFLIPBOOK_FIELD_NEWFILES_LABEL"
+                    description="MOD_PDFFLIPBOOK_FIELD_NEWFILES_DESC"
+                    >
+                    <option value="top">MOD_PDFFLIPBOOK_NEWFILES_TOP</option>
+                    <option value="bottom">MOD_PDFFLIPBOOK_NEWFILES_BOTTOM</option>
+                </field>
+                <field
+                    name="ordering"
+                    type="fileorder"
+                    showon="sort:manual"
+                    filter="raw"
+                    label="MOD_PDFFLIPBOOK_FIELD_ORDERING_LABEL"
+                    description="MOD_PDFFLIPBOOK_FIELD_ORDERING_DESC"
+                />
             </fieldset>
 
             <fieldset name="files" label="MOD_PDFFLIPBOOK_FIELDSET_OVERRIDES">
