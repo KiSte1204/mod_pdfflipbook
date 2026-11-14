@@ -19,7 +19,7 @@
 // PDF.js "legacy" build: also runs in Safari and older browsers.
 // The files use the .js extension so every web server delivers them with a JavaScript MIME type.
 import * as pdfjsLib from './lib/pdfjs/pdf.min.js?v=6.2.108-legacy';
-import { STRINGS, LANGUAGE_NAMES } from './lang.js?v=1.0.0';
+import { STRINGS, LANGUAGE_NAMES } from './lang.js?v=1.3.0';
 
 const LIB_URL = new URL('./lib/pdfjs/', import.meta.url).href;
 pdfjsLib.GlobalWorkerOptions.workerSrc = LIB_URL + 'pdf.worker.min.js?v=6.2.108-legacy';
@@ -34,10 +34,17 @@ function readStartPage() {
   return m ? parseInt(m[1], 10) : (parseInt(params.get('page'), 10) || 1);
 }
 
+// Joomla root folder: the viewer always lives in <Joomla>/media/mod_pdfflipbook/viewer/,
+// so this also works when Joomla is installed in a subfolder (e.g. /cms/ or /cms_test/).
+const SITE_ROOT = new URL('../../../', import.meta.url).href;
+
 function resolvePdfUrl(raw) {
   try {
     if (!raw) return null;
-    const url = new URL(raw, location.href);
+    // "/images/…" or a full URL: as before (from the domain root).
+    // "images/…" without a leading slash: relative to the Joomla root folder.
+    const absolute = raw.startsWith('/') || /^[a-z][a-z0-9+.-]*:/i.test(raw);
+    const url = new URL(raw, absolute ? location.href : SITE_ROOT);
     // Nur PDFs der eigenen Domain anzeigen (verhindert Missbrauch des Viewers für fremde Dateien)
     return url.origin === location.origin ? url.href : null;
   } catch (e) {

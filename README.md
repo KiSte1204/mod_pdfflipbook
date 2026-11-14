@@ -20,6 +20,7 @@ The viewer is based on [PDF.js](https://mozilla.github.io/pdf.js/) and runs enti
 - Fullscreen, PDF download, jump to page, keyboard navigation (← → Home End), direct links to a page (`#page=12`)
 - Viewer interface in 10 languages (DE, EN, FR, ES, IT, NL, PL, PT, CS, TR)
 - **Multilingual sites:** one subfolder per language, with a fallback language
+- **Folders as groups** (e.g. magazines, bulletins): every subfolder becomes a group with the folder name as heading (`2026`, `2021-2025` …) – optionally **collapsible**
 - Titles are built from the file names, the order is set by a number prefix – or **sorted by drag and drop** in the module settings, independently of the file names (per language)
 - Cover thumbnails are generated automatically (Imagick + Ghostscript) and renewed when a PDF is replaced
 - Three layouts: **List** (e.g. sidebar), **Grid** (catalogue page) and **Downloads** (table with size, date, browse and download buttons, optionally all languages)
@@ -87,6 +88,30 @@ images/flipbooks/
 └── 20_New_Products_2026.pdf
 ```
 
+### Folders as groups (magazines, bulletins, yearly archives)
+
+Set *Subfolders* to **Folders as groups**. Every subfolder becomes a group, the **folder name is the heading**:
+
+```
+images/magazine/
+├── Statutes.pdf              ← PDFs directly in the folder: shown at the top without heading
+├── 2026/
+│   ├── 2026_02_magazine.pdf
+│   └── 2026_01_magazine.pdf
+└── 2021-2025/
+    └── 2025_12_magazine.pdf
+```
+
+- *Folder order*: name descending (newest year first, default) or ascending.
+- *Collapsible groups*: all open, first group open or all collapsed – keeps long archives short on the first page view.
+- On multilingual sites the group folders are placed **inside the language folder** (`de/2026/`, `en/2026/`); the language folder of the page (or the fallback language) is used.
+- Only one level of subfolders is read. Empty folders and hidden folders are ignored.
+- Titles are built from the file names as usual. A leading date such as `2026_05_` is kept in the title; use *Title, description & hiding* for nicer titles.
+
+### PDFs outside the Joomla folder
+
+If Joomla is installed in a subfolder (e.g. `/cms/`) and the PDFs are in another public folder of the same website (e.g. `/documents/magazine/`), enter the folder with `../`: `../documents/magazine`. The folder must be reachable on the same website – folders above the web root are rejected. Not available for protected catalogues (such a folder can be opened directly); use an absolute path outside the web root there.
+
 ### Nothing is displayed?
 
 If the module finds no PDFs it outputs nothing for visitors. **Administrators who are logged in on the frontend** see a short notice instead, telling which folder was searched. Typical causes:
@@ -103,7 +128,7 @@ In the tab **Order** choose how the catalogues are sorted:
 |---|---|
 | File name ascending (number prefix) | Default: by the number at the beginning of the file name (`10_`, `20_` …), then alphabetically |
 | File name descending | The other way round (e.g. `2026_…` before `2025_…`) |
-| Manual | As arranged in the list below the option – drag the files or use the arrow buttons. **Each language folder has its own order.** Renaming files is not necessary |
+| Manual | As arranged in the list below the option – drag the files or use the arrow buttons. **Each language or group folder has its own order.** Renaming files is not necessary |
 | Newest first | By the date of the file (last upload first) |
 | Title A–Z | Alphabetically by the displayed title |
 
@@ -113,12 +138,16 @@ With **Manual**, files that are uploaded later are marked *new* in the list and 
 
 | Tab | Setting | Description |
 |---|---|---|
-| Module | Catalogue folder | Folder relative to the Joomla root |
-| | Languages | *Current language* or *All languages* (e.g. for the Downloads layout) |
+| Module | Catalogue folder | Folder relative to the Joomla root. If Joomla runs in a subfolder, a public folder next to it is possible too (`../documents/magazine`) |
+| | Subfolders | *Language folders* (default) or *Folders as groups* (folder name as heading) |
+| | Folder order | Folders as groups: name descending or ascending |
+| | Collapsible groups | No / first group open / all collapsed (groups with a heading) |
+| | Languages | *Current language* or *All languages* (e.g. for the Downloads layout; language folders only) |
 | | Fallback language | Used when there are no PDFs for the page language |
+| | Columns size / date | Downloads layout: show or hide the size and date columns |
 | | Intro text, download link, open in | Optional text above the list, PDF download link, new or same tab |
 | Order | Sort by, new files, manual order | File name ascending/descending, manual (drag and drop per language), newest first or title |
-| Title, description & hiding | Settings per file | Custom title, description or hide a file (`en/file.pdf` or `file.pdf`) |
+| Title, description & hiding | Settings per file | Custom title, description or hide a file (`en/file.pdf`, `2026/file.pdf` or `file.pdf`) |
 | Flipbook & thumbnail | Viewer address | Leave empty for the built-in viewer |
 | | Thumbnail width | Displayed width in px (generated at double resolution) |
 | Appearance | Accent colour | Viewer: buttons, highlights, toolbar line. Module: thumbnail border and buttons |
@@ -149,13 +178,15 @@ What happens:
 The viewer can also be embedded directly, e.g. in an article via iframe:
 
 ```html
-<iframe src="/media/mod_pdfflipbook/viewer/index.html?pdf=/images/flipbooks/en/10_Main_Catalogue_2026_EN.pdf&lang=en&langswitch=0"
+<iframe src="media/mod_pdfflipbook/viewer/index.html?pdf=images/flipbooks/en/10_Main_Catalogue_2026_EN.pdf&lang=en&langswitch=0"
         style="width:100%; height:85vh; border:0;" allowfullscreen title="Main Catalogue"></iframe>
 ```
 
+Write both paths **without a leading slash**: Joomla's *System – SEF* plugin adds the Joomla folder to `src`, and the viewer resolves `pdf=images/…` from the Joomla folder. The iframe then also works when Joomla is installed in a subfolder (e.g. `/cms/`) or the site is copied to another folder. Paths with a leading slash (`/images/…`) are read from the domain root as before.
+
 | Parameter | Meaning |
 |---|---|
-| `pdf` | Path to the PDF – only files on your own domain |
+| `pdf` | Path to the PDF – only files on your own domain. Without a leading slash it is relative to the Joomla folder |
 | `lang` | Interface language (de, en, fr …) |
 | `title` | Title in the toolbar (otherwise the PDF title or file name) |
 | `cover` | Image shown as cover while the PDF loads |
@@ -177,8 +208,9 @@ The viewer can also be embedded directly, e.g. in an article via iframe:
 3. Dateinamen nach dem Muster `10_Hauptkatalog_2026_DE.pdf` vergeben: Die Nummer legt die Reihenfolge fest, das Sprachkürzel wird ausgeblendet, `_` wird zum Leerzeichen. **Alternativ** im Reiter *Reihenfolge* „Manuell“ wählen und die Kataloge je Sprache per Ziehen anordnen – dann ist keine Nummer im Dateinamen nötig. Neu hochgeladene Dateien erscheinen wahlweise oben oder unten.
 4. Neues Modul vom Typ *PDF Flipbook Catalogs* anlegen, Position wählen und veröffentlichen.
 5. Farben im Reiter *Darstellung* an das eigene Design anpassen.
-6. Erscheint nichts: Im Frontend als Administrator anmelden – das Modul zeigt dann einen Hinweis, in welchem Ordner es gesucht hat.
-7. **Geschützte Kataloge** (z. B. Preislisten): eigenen Ordner anlegen (z. B. `images/flipbooks-geschuetzt/de/`), ein zweites Modul mit diesem Ordner erstellen, **„Dateien schützen“** einschalten und die **Zugriffsebene** auf *Registriert* bzw. eine eigene Händlergruppe stellen. Direkte Links auf die PDFs sind dann gesperrt; Joomla liefert die Dateien nur nach Prüfung der Anmeldung aus. Auf nginx-Servern einen Ordner außerhalb des Web-Verzeichnisses mit absolutem Pfad verwenden.
+6. **Zeitschriften, Bulletins, Jahresarchive:** *Unterordner* auf „Ordner als Gruppen“ stellen. Jeder Unterordner (z. B. `2026`, `2021-2025`) wird eine eigene Gruppe mit dem Ordnernamen als Überschrift, auf Wunsch aufklappbar. Auf mehrsprachigen Seiten liegen die Ordner im Sprachordner (`de/2026/`).
+7. Erscheint nichts: Im Frontend als Administrator anmelden – das Modul zeigt dann einen Hinweis, in welchem Ordner es gesucht hat.
+8. **Geschützte Kataloge** (z. B. Preislisten): eigenen Ordner anlegen (z. B. `images/flipbooks-geschuetzt/de/`), ein zweites Modul mit diesem Ordner erstellen, **„Dateien schützen“** einschalten und die **Zugriffsebene** auf *Registriert* bzw. eine eigene Händlergruppe stellen. Direkte Links auf die PDFs sind dann gesperrt; Joomla liefert die Dateien nur nach Prüfung der Anmeldung aus. Auf nginx-Servern einen Ordner außerhalb des Web-Verzeichnisses mit absolutem Pfad verwenden.
 
 ## Support
 

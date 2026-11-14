@@ -94,15 +94,37 @@ class FlipbookHelper
             return [];
         }
 
-        // Welche Sprachordner? Standard: aktuelle Sprache (mit Ersatzsprache), oder alle Sprachen
+        // $groups: key = folder relative to the main folder ('' = main folder) => file names
+        // $meta:   key => ['lang' => language for titles, 'label' => heading ('' = none)]
         $groups = [];
+        $meta   = [];
 
-        if ($params->get('scope', 'current') === 'all') {
+        if (self::groupMode($params) === 'folders') {
+            // Any subfolders as groups, the folder name is the heading. On multilingual sites
+            // the subfolders are taken from the language folder of the page (or the fallback).
+            $usedLang = '';
+
+            foreach (array_unique([$pageLang, $fallback]) as $lang) {
+                if (preg_match('/^[a-z]{2,3}$/', $lang) && is_dir($base . '/' . $lang)) {
+                    $usedLang = $lang;
+                    break;
+                }
+            }
+
+            foreach (self::folderGroups($base, $usedLang, self::groupSort($params)) as $key => $files) {
+                $groups[$key] = $files;
+                $meta[$key]   = [
+                    'lang'  => $usedLang !== '' ? $usedLang : $pageLang,
+                    'label' => $key === $usedLang ? '' : basename($key),
+                ];
+            }
+        } elseif ($params->get('scope', 'current') === 'all') {
             foreach (self::languageFolders($base, $pageLang) as $lang) {
                 [, $files] = self::findFiles($base, $lang, $lang);
 
                 if ($files) {
                     $groups[$lang] = $files;
+                    $meta[$lang]   = ['lang' => $lang, 'label' => self::LANGUAGE_NAMES[$lang] ?? strtoupper($lang)];
                 }
             }
         } else {
@@ -110,6 +132,7 @@ class FlipbookHelper
 
             if ($files) {
                 $groups[$usedLang] = $files;
+                $meta[$usedLang]   = ['lang' => $usedLang, 'label' => self::LANGUAGE_NAMES[$usedLang] ?? strtoupper($usedLang)];
             }
         }
 
@@ -119,6 +142,7 @@ class FlipbookHelper
 
             if ($files) {
                 $groups[''] = $files;
+                $meta['']   = ['lang' => $pageLang, 'label' => ''];
             }
         }
 
@@ -154,22 +178,22 @@ class FlipbookHelper
         $viewerUrl  = self::viewerUrl((string) $params->get('viewer_url', ''), $root);
         $style      = self::viewerStyle($params);
         $thumbWidth = max(80, min(800, (int) $params->get('thumb_width', 160)));
-        $folderUrl  = $root . '/' . implode('/', array_map('rawurlencode', explode('/', $folder)));
+        $folderUrl  = str_starts_with($folder, '../')
+            ? rtrim((string) self::outsideUrlPath($folder, $root), '/')
+            : $root . '/' . implode('/', array_map('rawurlencode', explode('/', $folder)));
 
         // Im Download-Layout werden keine neuen Vorschaubilder erzeugt (vorhandene werden genutzt)
         $makeThumbs = !str_ends_with((string) $params->get('layout', ''), 'downloads');
 
         $items = [];
 
-        foreach ($groups as $usedLang => $files) {
+        foreach ($groups as $key => $files) {
             $groupItems = [];
-
-            // '' = PDFs directly in the main folder (site language is used for the title)
-            $inRoot   = $usedLang === '';
-            $usedLang = $inRoot ? $pageLang : $usedLang;
+            $key        = (string) $key;
+            $usedLang   = $meta[$key]['lang'];
 
             foreach ($files as $file) {
-                $rel      = $inRoot ? $file : $usedLang . '/' . $file;
+                $rel      = $key === '' ? $file : $key . '/' . $file;
                 $override = self::findOverride($overrides, $rel, $file);
 
                 if ($override && !empty($override['hide'])) {
@@ -180,7 +204,7 @@ class FlipbookHelper
                 $path    = $base . '/' . $rel;
                 $pdfUrl  = $protected
                     ? self::protectedUrl($root, $moduleId, $rel)
-                    : $folderUrl . '/' . ($inRoot ? '' : rawurlencode($usedLang) . '/') . rawurlencode($file);
+                    : $folderUrl . '/' . implode('/', array_map('rawurlencode', explode('/', $rel)));
 
                 $item = (object) [
                     'title'       => $title,
@@ -188,6 +212,8 @@ class FlipbookHelper
                     'file'        => $file,
                     'lang'        => $usedLang,
                     'langName'    => self::LANGUAGE_NAMES[$usedLang] ?? strtoupper($usedLang),
+                    'group'       => $key,
+                    'groupName'   => $meta[$key]['label'],
                     'isFallback'  => $usedLang !== $pageLang,
                     'pageLang'    => $pageLang,
                     'pdf'         => $pdfUrl,
@@ -243,8 +269,111 @@ class FlipbookHelper
     }
 
     /**
-     * Saved manual order: {"de": ["10_a.pdf", "b.pdf"], "en": [...], "": [...]}
-     * ("" = PDFs directly in the main folder).
+     * Grouping: "lang" = language folders (default), "folders" = any subfolders, folder name as heading.
+     */
+    public static function groupMode(Registry $params): string
+    {
+        return $params->get('groups', 'lang') === 'folders' ? 'folders' : 'lang';
+    }
+
+    /**
+     * Order of the folder groups: "name_desc" (default, newest year first) or "name".
+     */
+    public static function groupSort(Registry $params): string
+    {
+        return $params->get('group_sort', 'name_desc') === 'name' ? 'name' : 'name_desc';
+    }
+
+    /**
+     * Collapsible groups: "none" (default), "first" (first group open) or "all" (all closed).
+     */
+    public static function collapseMode(Registry $params): string
+    {
+        $mode = (string) $params->get('collapse', 'none');
+
+        return \in_array($mode, ['first', 'all'], true) ? $mode : 'none';
+    }
+
+    /**
+     * Visible subfolders of a folder (hidden folders such as .thumbs are left out).
+     *
+     * @return  string[]
+     */
+    public static function subFolders(string $dir, string $sort = 'name_desc'): array
+    {
+        $folders = [];
+
+        foreach (scandir($dir) ?: [] as $entry) {
+            if ($entry === '' || $entry[0] === '.' || !is_dir($dir . '/' . $entry)) {
+                continue;
+            }
+
+            $folders[] = $entry;
+        }
+
+        usort($folders, static fn ($a, $b) => strnatcasecmp(self::nfc($a), self::nfc($b)));
+
+        return $sort === 'name' ? $folders : array_reverse($folders);
+    }
+
+    /**
+     * Folder groups of one container: PDFs directly in the container first (without heading),
+     * then one group per subfolder. Empty folders are left out.
+     *
+     * @param   string  $lang  Language folder used as container, '' = main folder
+     *
+     * @return  array<string, string[]>  key = folder relative to the main folder => file names
+     */
+    public static function folderGroups(string $base, string $lang, string $sort = 'name_desc'): array
+    {
+        $container = $lang === '' ? $base : $base . '/' . $lang;
+        $prefix    = $lang === '' ? '' : $lang . '/';
+        $groups    = [];
+
+        if ($files = self::listPdfs($container)) {
+            $groups[$lang] = $files;
+        }
+
+        foreach (self::subFolders($container, $sort) as $sub) {
+            if ($files = self::listPdfs($container . '/' . $sub)) {
+                $groups[$prefix . $sub] = $files;
+            }
+        }
+
+        return $groups;
+    }
+
+    /**
+     * Valid group key: '' or one/two folder names without hidden parts, e.g. "de", "2026", "de/2026".
+     */
+    public static function isGroupKey(string $key): bool
+    {
+        if ($key === '') {
+            return true;
+        }
+
+        if (str_contains($key, '\\') || str_contains($key, "\0")) {
+            return false;
+        }
+
+        $parts = explode('/', $key);
+
+        if (\count($parts) > 2) {
+            return false;
+        }
+
+        foreach ($parts as $part) {
+            if ($part === '' || $part[0] === '.') {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Saved manual order: {"de": ["10_a.pdf", "b.pdf"], "en": [...], "": [...], "2026": [...]}
+     * ("" = PDFs directly in the main folder, other keys = language or group folder).
      *
      * @return  array<string, string[]>
      */
@@ -265,7 +394,7 @@ class FlipbookHelper
         foreach ($value as $lang => $files) {
             $lang = (string) $lang;
 
-            if (($lang !== '' && !preg_match('/^[a-z]{2,3}$/', $lang)) || !\is_array($files)) {
+            if (!self::isGroupKey($lang) || !\is_array($files)) {
                 continue;
             }
 
@@ -373,7 +502,69 @@ class FlipbookHelper
         }
 
         // "/images/flipbooks" is read relative to the Joomla root as before
-        return self::resolveFolder(JPATH_ROOT, ltrim($folder, '/'));
+        $inside = self::resolveFolder(JPATH_ROOT, ltrim($folder, '/'));
+
+        if ($inside !== null || $protected) {
+            return $inside;
+        }
+
+        return self::outsideFolder($folder);
+    }
+
+    /**
+     * Public folder outside the Joomla folder, e.g. "../shared/pdfs" when Joomla runs in a subfolder.
+     * Only allowed when the folder can be reached on the same website: it must not go above the
+     * web root (checked via the address and – if known – the server's document root).
+     * Not for protected catalogues: such a folder is reachable directly and could not be protected.
+     */
+    public static function outsideFolder(string $folder): ?string
+    {
+        if (self::isAbsolute($folder) || !str_starts_with($folder, '../') || self::outsideUrlPath($folder) === null) {
+            return null;
+        }
+
+        $real = realpath(JPATH_ROOT . '/' . $folder);
+
+        if ($real === false || !is_dir($real)) {
+            return null;
+        }
+
+        $docRoot = realpath((string) ($_SERVER['DOCUMENT_ROOT'] ?? ''));
+
+        if ($docRoot !== false && $docRoot !== '' && strpos($real . '/', rtrim($docRoot, '/') . '/') !== 0) {
+            return null;
+        }
+
+        return $real;
+    }
+
+    /**
+     * Web address path of a folder given relative to the Joomla folder, with "../" resolved
+     * ("/cms" + "../shared/pdfs" = "/shared/pdfs"). Null if it would go above the web root.
+     */
+    public static function outsideUrlPath(string $folder, ?string $root = null): ?string
+    {
+        $root  = $root ?? rtrim(Uri::root(true), '/');
+        $parts = [];
+
+        foreach (explode('/', trim($root, '/') . '/' . $folder) as $part) {
+            if ($part === '' || $part === '.') {
+                continue;
+            }
+
+            if ($part === '..') {
+                if (!$parts) {
+                    return null;
+                }
+
+                array_pop($parts);
+                continue;
+            }
+
+            $parts[] = $part;
+        }
+
+        return '/' . implode('/', array_map('rawurlencode', $parts));
     }
 
     /**
@@ -458,13 +649,12 @@ class FlipbookHelper
         }
 
         $parts = explode('/', $file);
+        $name  = array_pop($parts);
 
-        // Only "<file>.pdf" or "<language>/<file>.pdf", no hidden files or folders
-        if (\count($parts) > 2 || (\count($parts) === 2 && !preg_match('/^[a-z]{2,3}$/', $parts[0]))) {
+        // "<file>.pdf", "<folder>/<file>.pdf" or "<language>/<folder>/<file>.pdf", no hidden files or folders
+        if (!self::isGroupKey(implode('/', $parts))) {
             return null;
         }
-
-        $name = end($parts);
 
         if ($name === '' || $name[0] === '.' || !preg_match('/\.pdf$/i', $name)) {
             return null;
@@ -586,8 +776,8 @@ class FlipbookHelper
     {
         $name = self::nfc(preg_replace('/\.pdf$/i', '', $file));
 
-        // Reihenfolge-Nummer am Anfang
-        $name = preg_replace('/^\d+[\s_.\-]+/u', '', $name);
+        // Order number at the start (10_Name) – but not a date like 2026_05_Name
+        $name = preg_replace('/^\d+[\s_.\-]+(?=\D)/u', '', $name);
 
         // Sprachkürzel am Ende oder Anfang (beliebige Schreibweise) …
         $code = preg_quote($lang, '/');

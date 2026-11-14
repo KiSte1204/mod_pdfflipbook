@@ -3,6 +3,23 @@
     <changelog>
         <element>mod_pdfflipbook</element>
         <type>module</type>
+        <version>1.3.0</version>
+        <addition>
+            <item>New option "Subfolders → Folders as groups": every subfolder becomes a group with the folder name as heading (e.g. 2026, 2021-2025) – for magazines, bulletins and yearly archives. On multilingual sites inside the language folder.</item>
+            <item>Folder order: name descending (newest year first) or ascending.</item>
+            <item>New option "Collapsible groups" (all open, first group open, all collapsed) for all layouts – without JavaScript.</item>
+            <item>Downloads layout: the columns "Size" and "Date" can be hidden individually.</item>
+            <item>Viewer: PDF paths without a leading slash (pdf=images/…) are resolved from the Joomla folder – iframes keep working when Joomla is installed in a subfolder or the site is copied to another folder.</item>
+            <item>Catalogue folder outside the Joomla folder: when Joomla runs in a subfolder, a public folder next to it can be used (e.g. ../documents/magazine). Not for protected catalogues.</item>
+        </addition>
+        <change>
+            <item>Downloads layout: column heading "Document" instead of "Catalogue".</item>
+            <item>Titles: a leading date like 2026_05_ is no longer cut off (order numbers like 10_ still are).</item>
+        </change>
+    </changelog>
+    <changelog>
+        <element>mod_pdfflipbook</element>
+        <type>module</type>
         <version>1.2.0</version>
         <addition>
             <item>New tab "Order": sort the catalogues by file name ascending (as before) or descending, manually, newest first or by title.</item>

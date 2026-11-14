@@ -7,7 +7,7 @@
  * @copyright   (C) 2026 Stefan Kirchhoff, webkiste.net
  * @license     GNU General Public License version 2 or later; see LICENSE.txt
  *
- * Form field "Order": lists all PDFs of the catalogue folder per language and lets the
+ * Form field "Order": lists all PDFs of the catalogue folder per language (or group folder) and lets the
  * administrator sort them by drag & drop (or with the arrow buttons).
  * The order is stored as JSON: {"de": ["10_a.pdf", ...], "en": [...], "": [...]}.
  */
@@ -47,15 +47,36 @@ class FileorderField extends FormField
             return $hidden . '<div class="alert alert-info">' . Text::sprintf('MOD_PDFFLIPBOOK_ORDER_NO_FOLDER', $e($folder)) . '</div>';
         }
 
-        // Language folders (alphabetical by language name), or the main folder on single-language sites
+        // Groups: language folders (alphabetical by language name), or the main folder on single-language sites.
+        // In folder mode the subfolders inside each language folder (or the main folder) are listed.
+        // $labels: key => heading shown above the list
         $groups = [];
+        $labels = [];
+        $langs  = FlipbookHelper::languageFolders($base, '');
 
-        foreach (FlipbookHelper::languageFolders($base, '') as $lang) {
-            $groups[$lang] = FlipbookHelper::listPdfs($base . '/' . $lang);
-        }
+        if (FlipbookHelper::groupMode($params) === 'folders') {
+            $sort = FlipbookHelper::groupSort($params);
 
-        if (!$groups) {
-            $groups[''] = FlipbookHelper::listPdfs($base);
+            foreach ($langs ?: [''] as $lang) {
+                foreach (FlipbookHelper::folderGroups($base, $lang, $sort) as $key => $files) {
+                    $key          = (string) $key;
+                    $groups[$key] = $files;
+                    $langLabel    = $lang === '' ? '' : (FlipbookHelper::LANGUAGE_NAMES[$lang] ?? strtoupper($lang)) . ' (' . $lang . ')';
+                    $labels[$key] = $key === $lang
+                        ? ($lang === '' ? Text::_('MOD_PDFFLIPBOOK_ORDER_MAIN_FOLDER') : $langLabel)
+                        : ($langLabel !== '' ? $langLabel . ' › ' : '') . basename($key);
+                }
+            }
+        } else {
+            foreach ($langs as $lang) {
+                $groups[$lang] = FlipbookHelper::listPdfs($base . '/' . $lang);
+                $labels[$lang] = (FlipbookHelper::LANGUAGE_NAMES[$lang] ?? strtoupper($lang)) . ' (' . $lang . ')';
+            }
+
+            if (!$groups) {
+                $groups[''] = FlipbookHelper::listPdfs($base);
+                $labels['']  = Text::_('MOD_PDFFLIPBOOK_ORDER_MAIN_FOLDER');
+            }
         }
 
         $html  = '<div class="pfb-order" data-target="' . $e($this->id) . '">';
@@ -67,9 +88,8 @@ class FileorderField extends FormField
         foreach ($groups as $lang => $files) {
             [$ordered, $new] = FlipbookHelper::applyOrder($files, $saved[(string) $lang] ?? [], $newPos);
             $newKeys         = array_map(static fn ($f) => mb_strtolower(FlipbookHelper::nfc($f)), $new);
-            $label           = $lang === ''
-                ? Text::_('MOD_PDFFLIPBOOK_ORDER_MAIN_FOLDER')
-                : (FlipbookHelper::LANGUAGE_NAMES[$lang] ?? strtoupper($lang)) . ' (' . $lang . ')';
+            $label           = $labels[(string) $lang];
+            $titleLang       = preg_match('#^([a-z]{2,3})(/|$)#', (string) $lang, $m) ? $m[1] : 'xx';
 
             $html .= '<details class="pfb-order__group" open data-lang="' . $e($lang) . '">';
             $html .= '<summary><strong>' . $e($label) . '</strong> <span class="pfb-order__count">'
@@ -90,7 +110,7 @@ class FileorderField extends FormField
                 $override = FlipbookHelper::findOverride($overrides, $rel, $file);
                 $title    = ($override && $override['title'] !== '')
                     ? $override['title']
-                    : FlipbookHelper::buildTitle($file, $lang !== '' ? $lang : 'xx');
+                    : FlipbookHelper::buildTitle($file, $titleLang);
                 $isNew    = \in_array(mb_strtolower(FlipbookHelper::nfc($file)), $newKeys, true);
                 $isHidden = $override && !empty($override['hide']);
 
