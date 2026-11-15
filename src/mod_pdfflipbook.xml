@@ -6,7 +6,7 @@
     <creationDate>2026-11</creationDate>
     <copyright>(C) 2026 Stefan Kirchhoff, webkiste.net</copyright>
     <license>GNU General Public License version 2 or later; see LICENSE.txt</license>
-    <version>1.3.0</version>
+    <version>1.3.1</version>
     <description>MOD_PDFFLIPBOOK_XML_DESCRIPTION</description>
     <namespace path="src">Webkiste\Module\PdfFlipbook</namespace>
 
@@ -203,6 +203,17 @@
             </fieldset>
 
             <fieldset name="files" label="MOD_PDFFLIPBOOK_FIELDSET_OVERRIDES">
+                <field
+                    name="title_mode"
+                    type="list"
+                    default="clean"
+                    label="MOD_PDFFLIPBOOK_FIELD_TITLEMODE_LABEL"
+                    description="MOD_PDFFLIPBOOK_FIELD_TITLEMODE_DESC"
+                    >
+                    <option value="clean">MOD_PDFFLIPBOOK_TITLEMODE_CLEAN</option>
+                    <option value="name">MOD_PDFFLIPBOOK_TITLEMODE_NAME</option>
+                    <option value="file">MOD_PDFFLIPBOOK_TITLEMODE_FILE</option>
+                </field>
                 <field
                     name="overrides"
                     type="subform"

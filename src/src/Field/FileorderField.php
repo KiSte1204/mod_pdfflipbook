@@ -110,7 +110,7 @@ class FileorderField extends FormField
                 $override = FlipbookHelper::findOverride($overrides, $rel, $file);
                 $title    = ($override && $override['title'] !== '')
                     ? $override['title']
-                    : FlipbookHelper::buildTitle($file, $titleLang);
+                    : FlipbookHelper::fileTitle($file, $titleLang, FlipbookHelper::titleMode($params));
                 $isNew    = \in_array(mb_strtolower(FlipbookHelper::nfc($file)), $newKeys, true);
                 $isHidden = $override && !empty($override['hide']);
 

@@ -174,6 +174,7 @@ class FlipbookHelper
         }
 
         $overrides  = self::parseOverrides($params->get('overrides'));
+        $titleMode  = self::titleMode($params);
         $root       = rtrim(Uri::root(true), '/');
         $viewerUrl  = self::viewerUrl((string) $params->get('viewer_url', ''), $root);
         $style      = self::viewerStyle($params);
@@ -200,7 +201,7 @@ class FlipbookHelper
                     continue;
                 }
 
-                $title   = ($override && $override['title'] !== '') ? $override['title'] : self::buildTitle($file, $usedLang);
+                $title   = ($override && $override['title'] !== '') ? $override['title'] : self::fileTitle($file, $usedLang, $titleMode);
                 $path    = $base . '/' . $rel;
                 $pdfUrl  = $protected
                     ? self::protectedUrl($root, $moduleId, $rel)
@@ -772,6 +773,26 @@ class FlipbookHelper
      * Angezeigter Titel aus dem Dateinamen.
      *   10_Main_Catalogue_2026-2027_EN.pdf  ->  Main Catalogue 2026-2027
      */
+    /**
+     * Title mode: "clean" (default, number prefix and language code removed, underscores as spaces),
+     * "name" (complete file name without .pdf) or "file" (complete file name with .pdf).
+     */
+    public static function titleMode(Registry $params): string
+    {
+        $mode = (string) $params->get('title_mode', 'clean');
+
+        return \in_array($mode, ['name', 'file'], true) ? $mode : 'clean';
+    }
+
+    public static function fileTitle(string $file, string $lang, string $mode = 'clean'): string
+    {
+        return match ($mode) {
+            'file'  => self::nfc($file),
+            'name'  => self::nfc(preg_replace('/\.pdf$/i', '', $file)),
+            default => self::buildTitle($file, $lang),
+        };
+    }
+
     public static function buildTitle(string $file, string $lang): string
     {
         $name = self::nfc(preg_replace('/\.pdf$/i', '', $file));

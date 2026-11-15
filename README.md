@@ -2,31 +2,47 @@
 
 # PDF Flipbook Catalogs for Joomla
 
-A Joomla site module that lists your PDF catalogues per language – with an automatically generated cover thumbnail – and opens them in a built-in **flipbook viewer**.
+A Joomla site module that turns a **folder of PDF files into a ready-made document library**: upload your PDFs via FTP or the Media Manager – the module finds them, builds titles from the file names, generates cover thumbnails, sorts and groups them and opens them in a built-in **flipbook viewer**. Nothing to maintain in the backend.
+
+Perfect for catalogues, brochures, price lists, magazines, newsletters, bulletins, minutes, results lists and yearly archives – on single-language and multilingual sites.
 
 The viewer is based on [PDF.js](https://mozilla.github.io/pdf.js/) and runs entirely on your own server: **no external services, no CDN, no cookies, no tracking.**
 
-> **Important – designed for multilingual sites:** The module looks for the PDFs in **one subfolder per language** (e.g. `images/flipbooks/de/`, `images/flipbooks/en/`) and shows the PDFs of the current page language. On a **single-language site** you can put the PDFs directly into `images/flipbooks/` – this works as long as there are no language subfolders. See [Folder structure](#folder-structure-and-file-names).
+> **Folder structure:** PDFs directly in the folder (single-language sites), **one subfolder per language** (`de/`, `en/` – the module shows the files of the current page language) or **subfolders as groups** (`2026/`, `2025/` – the folder name becomes the heading). See [Folder structure](#folder-structure-and-file-names) and [Folders as groups](#folders-as-groups-magazines-bulletins-yearly-archives).
 >
-> **Wichtig – ausgelegt auf mehrsprachige Seiten:** Das Modul sucht die PDFs in **je einem Unterordner pro Sprache** (z. B. `images/flipbooks/de/`). Bei **einsprachigen Seiten** dürfen die PDFs direkt in `images/flipbooks/` liegen, solange es keine Sprach-Unterordner gibt.
+> **Ordnerstruktur:** PDFs direkt im Ordner (einsprachige Seiten), **je ein Unterordner pro Sprache** (`de/`, `en/`) oder **Unterordner als Gruppen** (`2026/`, `2025/` – der Ordnername wird zur Überschrift).
 
 *Deutsche Kurzanleitung weiter unten.*
 
 ## Features
 
-- **Flipbook viewer:** double pages with a page-flip effect (cover shown alone), single pages with swipe on smartphones
-- Page overview with thumbnails, **full-text search** in the PDF (with text snippets), zoom with drag-to-pan
-- Clickable links from the PDF (web links and jumps within the catalogue)
-- Fullscreen, PDF download, jump to page, keyboard navigation (← → Home End), direct links to a page (`#page=12`)
-- Viewer interface in 10 languages (DE, EN, FR, ES, IT, NL, PL, PT, CS, TR)
+**Automatic preparation of your PDFs**
+
+- Just drop PDFs into a folder – new files appear automatically, replaced files get a new cover and date
+- Titles built from the file names (number prefix and language code removed) – or the **complete file name**, e.g. when it starts with a date
+- Cover thumbnails of the first page generated automatically (Imagick + Ghostscript)
+- **Groups from subfolders:** every subfolder becomes a section with the folder name as heading (`2026`, `2021-2025` …) – optionally **collapsible**, so long archives stay short
 - **Multilingual sites:** one subfolder per language, with a fallback language
-- **Folders as groups** (e.g. magazines, bulletins): every subfolder becomes a group with the folder name as heading (`2026`, `2021-2025` …) – optionally **collapsible**
-- Titles are built from the file names, the order is set by a number prefix – or **sorted by drag and drop** in the module settings, independently of the file names (per language)
-- Cover thumbnails are generated automatically (Imagick + Ghostscript) and renewed when a PDF is replaced
-- Three layouts: **List** (e.g. sidebar), **Grid** (catalogue page) and **Downloads** (table with size, date, browse and download buttons, optionally all languages)
-- **Colour settings:** accent colour, toolbar background, toolbar text and page background; adjustable flip duration
+- **Sorting:** by file name (ascending/descending), newest first, title A–Z or **manually by drag and drop** – new uploads are marked and placed at the top or bottom
 - Per-file settings for a custom title, a description or hiding a file
-- **Protected catalogues** (e.g. price lists for dealers): only visitors with the module's access level can open the PDFs – direct links to the files are blocked
+- Folder inside Joomla or – when Joomla runs in a subfolder – a public folder next to it (`../documents`)
+
+**Layouts**
+
+- **List** (e.g. sidebar) and **Grid** with cover thumbnails
+- **Downloads:** table with title, size, date, browse and download buttons – size and date columns can be hidden
+- **Colour settings:** accent colour, toolbar background, toolbar text and page background; adjustable flip duration
+
+**Flipbook viewer**
+
+- Double pages with a page-flip effect (cover shown alone), single pages with swipe on smartphones
+- Page overview with thumbnails, **full-text search** in the PDF (with text snippets), zoom with drag-to-pan
+- Clickable links from the PDF (web links and jumps within the document)
+- Fullscreen, PDF download, jump to page, keyboard navigation (← → Home End), direct links to a page (`#page=12`)
+- Can also be embedded anywhere via iframe (see [Using the viewer without the module](#using-the-viewer-without-the-module))
+- Viewer interface in 10 languages (DE, EN, FR, ES, IT, NL, PL, PT, CS, TR)
+
+**Protected documents** (e.g. price lists for dealers, internal minutes): only visitors with the module's access level can open the PDFs – direct links to the files are blocked
 
 ## Screenshots
 
@@ -147,6 +163,7 @@ With **Manual**, files that are uploaded later are marked *new* in the list and 
 | | Columns size / date | Downloads layout: show or hide the size and date columns |
 | | Intro text, download link, open in | Optional text above the list, PDF download link, new or same tab |
 | Order | Sort by, new files, manual order | File name ascending/descending, manual (drag and drop per language), newest first or title |
+| Title, description & hiding | Title from file name | *Cleaned up* (default: number prefix and language code removed), *complete file name without .pdf* or *with .pdf* |
 | Title, description & hiding | Settings per file | Custom title, description or hide a file (`en/file.pdf`, `2026/file.pdf` or `file.pdf`) |
 | Flipbook & thumbnail | Viewer address | Leave empty for the built-in viewer |
 | | Thumbnail width | Displayed width in px (generated at double resolution) |
