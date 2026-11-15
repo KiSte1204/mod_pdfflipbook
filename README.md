@@ -136,6 +136,11 @@ If the module finds no PDFs it outputs nothing for visitors. **Administrators wh
 - The language folder has a different name than the site language (e.g. `DE` instead of `de`, or `german`) → use the lower-case two-letter code.
 - The module setting *Catalogue folder* points to a different folder.
 
+### The viewer keeps loading (spinner)?
+
+- Check that the JavaScript files exist in `media/mod_pdfflipbook/viewer/` (`flipbook.js`, `lang.js`) and `media/mod_pdfflipbook/viewer/lib/pdfjs/` (`pdf.min.js`, `pdf.worker.min.js`). Some hosting virus scanners rename them after installation (e.g. to `.j_`) – rename them back and ask your host to whitelist the folder. This may happen again after updates.
+- Viewer embedded via iframe in an article: the TinyMCE editor may add an empty `sandbox=""` attribute when saving, which blocks the viewer. Remove it, or insert the iframe with Sourcerer or with the editor switched off.
+
 ## Order
 
 In the tab **Order** choose how the catalogues are sorted:
@@ -220,14 +225,21 @@ Write both paths **without a leading slash**: Joomla's *System – SEF* plugin a
 
 ## Deutsche Kurzanleitung
 
+Das Modul macht aus einem Ordner mit PDF-Dateien automatisch eine fertige Dokumenten-Übersicht: PDFs per FTP oder Medienverwaltung hochladen – Titel, Vorschaubilder, Sortierung und Gruppierung erledigt das Modul, geöffnet wird im eingebauten Blätterkatalog. Geeignet für Kataloge, Preislisten, Zeitschriften, Bulletins, Protokolle, Ranglisten und Jahresarchive.
+
 1. ZIP unter *System → Installieren → Erweiterungen* hochladen.
-2. Ordner `images/flipbooks/` anlegen, darin **je Sprache einen Unterordner** (`de`, `en` … – Kleinbuchstaben, zweistelliges Sprachkürzel) mit den PDFs. Einsprachige Seiten: PDFs direkt in `images/flipbooks/`, dann aber **ohne** Sprach-Unterordner – sobald ein Sprachordner existiert, werden PDFs im Hauptordner ignoriert.
-3. Dateinamen nach dem Muster `10_Hauptkatalog_2026_DE.pdf` vergeben: Die Nummer legt die Reihenfolge fest, das Sprachkürzel wird ausgeblendet, `_` wird zum Leerzeichen. **Alternativ** im Reiter *Reihenfolge* „Manuell“ wählen und die Kataloge je Sprache per Ziehen anordnen – dann ist keine Nummer im Dateinamen nötig. Neu hochgeladene Dateien erscheinen wahlweise oben oder unten.
-4. Neues Modul vom Typ *PDF Flipbook Catalogs* anlegen, Position wählen und veröffentlichen.
-5. Farben im Reiter *Darstellung* an das eigene Design anpassen.
-6. **Zeitschriften, Bulletins, Jahresarchive:** *Unterordner* auf „Ordner als Gruppen“ stellen. Jeder Unterordner (z. B. `2026`, `2021-2025`) wird eine eigene Gruppe mit dem Ordnernamen als Überschrift, auf Wunsch aufklappbar. Auf mehrsprachigen Seiten liegen die Ordner im Sprachordner (`de/2026/`).
-7. Erscheint nichts: Im Frontend als Administrator anmelden – das Modul zeigt dann einen Hinweis, in welchem Ordner es gesucht hat.
-8. **Geschützte Kataloge** (z. B. Preislisten): eigenen Ordner anlegen (z. B. `images/flipbooks-geschuetzt/de/`), ein zweites Modul mit diesem Ordner erstellen, **„Dateien schützen“** einschalten und die **Zugriffsebene** auf *Registriert* bzw. eine eigene Händlergruppe stellen. Direkte Links auf die PDFs sind dann gesperrt; Joomla liefert die Dateien nur nach Prüfung der Anmeldung aus. Auf nginx-Servern einen Ordner außerhalb des Web-Verzeichnisses mit absolutem Pfad verwenden.
+2. Neues Modul vom Typ *PDF Flipbook Catalogs* anlegen, Position wählen und veröffentlichen. Im Reiter *Modul* den Ordner eintragen (Standard: `images/flipbooks`).
+3. **Ordnerstruktur** – je nach Einstellung *Unterordner*:
+   - **Einsprachige Seite:** PDFs direkt in den Ordner legen.
+   - **Sprachordner** (Standard): je Sprache ein Unterordner (`de`, `en` … – Kleinbuchstaben, Sprachkürzel). Angezeigt werden die PDFs der aktuellen Seitensprache, sonst die der Ersatzsprache. Sobald ein Sprachordner existiert, werden PDFs im Hauptordner ignoriert.
+   - **Ordner als Gruppen** (Zeitschriften, Bulletins, Jahresarchive): Jeder Unterordner (z. B. `2026`, `2021-2025`) wird eine eigene Gruppe mit dem Ordnernamen als Überschrift. PDFs direkt im Hauptordner stehen ohne Überschrift oben. Auf mehrsprachigen Seiten liegen die Gruppenordner im Sprachordner (`de/2026/`).
+   - Läuft Joomla in einem Unterordner (z. B. `/cms/`), kann auch ein öffentlicher Ordner daneben verwendet werden: `../dokumente/magazin`.
+4. **Titel:** Standardmäßig aus dem Dateinamen aufbereitet – `10_Hauptkatalog_2026_DE.pdf` wird zu „Hauptkatalog 2026“ (Nummer vorne und Sprachkürzel entfernt, `_` wird zum Leerzeichen). Steht vorne ein Datum, das sichtbar bleiben soll (z. B. `20260830-rangliste.pdf`), unter *Titel, Beschreibung & Ausblenden* → *Titel aus Dateiname* „Vollständiger Dateiname“ wählen. Dort lassen sich auch einzelne Titel ändern, Beschreibungen ergänzen oder Dateien ausblenden.
+5. **Reihenfolge** (Reiter *Reihenfolge*): Dateiname auf- oder absteigend, neueste zuerst, Titel A–Z oder **manuell per Ziehen** – je Sprach- bzw. Gruppenordner eigene Reihenfolge, keine Nummern im Dateinamen nötig. Neu hochgeladene Dateien erscheinen wahlweise oben oder unten. Bei Gruppen außerdem: Reihenfolge der Ordner (neuestes Jahr zuerst oder aufsteigend).
+6. **Darstellung:** Layout *Liste*, *Raster* oder *Downloads* (Tabelle mit Größe, Stand, Blättern und Herunterladen – die Spalten *Größe* und *Stand* lassen sich einzeln ausblenden). Gruppen auf Wunsch **aufklappbar** (alle offen, erste offen oder alle zugeklappt). Farben im Reiter *Darstellung* an das eigene Design anpassen.
+7. **Geschützte Kataloge** (z. B. Preislisten): eigenen Ordner anlegen (z. B. `images/flipbooks-geschuetzt/de/`), ein zweites Modul mit diesem Ordner erstellen, **„Dateien schützen“** einschalten und die **Zugriffsebene** auf *Registriert* bzw. eine eigene Händlergruppe stellen. Direkte Links auf die PDFs sind dann gesperrt; Joomla liefert die Dateien nur nach Prüfung der Anmeldung aus. Auf nginx-Servern einen Ordner außerhalb des Web-Verzeichnisses mit absolutem Pfad verwenden.
+8. **Viewer ohne Modul** (z. B. in einem Beitrag): per iFrame auf `media/mod_pdfflipbook/viewer/index.html?pdf=images/…` einbinden – Pfade **ohne führenden Schrägstrich**, dann funktioniert es auch in Unterordner-Installationen. Im TinyMCE-Editor den Code am besten per Sourcerer einfügen, sonst ergänzt der Editor `sandbox=""` und der Viewer lädt nicht. Details unter [Using the viewer without the module](#using-the-viewer-without-the-module).
+9. **Erscheint nichts:** Im Frontend als Administrator anmelden – das Modul zeigt dann einen Hinweis, in welchem Ordner es gesucht hat. Dreht der Viewer endlos: prüfen, ob die `.js`-Dateien unter `media/mod_pdfflipbook/viewer/` vorhanden sind (manche Virenscanner beim Hoster benennen sie um, z. B. in `.j_`).
 
 ## Support
 
