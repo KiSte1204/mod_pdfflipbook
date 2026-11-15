@@ -6,9 +6,11 @@
     <creationDate>2026-11</creationDate>
     <copyright>(C) 2026 Stefan Kirchhoff, webkiste.net</copyright>
     <license>GNU General Public License version 2 or later; see LICENSE.txt</license>
-    <version>1.3.1</version>
+    <version>1.3.2</version>
     <description>MOD_PDFFLIPBOOK_XML_DESCRIPTION</description>
     <namespace path="src">Webkiste\Module\PdfFlipbook</namespace>
+
+    <scriptfile>script.php</scriptfile>
 
     <files>
         <folder module="mod_pdfflipbook">services</folder>

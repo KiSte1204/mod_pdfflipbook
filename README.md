@@ -138,6 +138,8 @@ If the module finds no PDFs it outputs nothing for visitors. **Administrators wh
 
 ### The viewer keeps loading (spinner)?
 
+Since version 1.3.2 the module checks this itself: after the installation and on the frontend (for logged-in administrators) a notice names missing or renamed viewer files.
+
 - Check that the JavaScript files exist in `media/mod_pdfflipbook/viewer/` (`flipbook.js`, `lang.js`) and `media/mod_pdfflipbook/viewer/lib/pdfjs/` (`pdf.min.js`, `pdf.worker.min.js`). Some hosting virus scanners rename them after installation (e.g. to `.j_`) – rename them back and ask your host to whitelist the folder. This may happen again after updates.
 - Viewer embedded via iframe in an article: the TinyMCE editor may add an empty `sandbox=""` attribute when saving, which blocks the viewer. Remove it, or insert the iframe with Sourcerer or with the editor switched off.
 
@@ -239,7 +241,7 @@ Das Modul macht aus einem Ordner mit PDF-Dateien automatisch eine fertige Dokume
 6. **Darstellung:** Layout *Liste*, *Raster* oder *Downloads* (Tabelle mit Größe, Stand, Blättern und Herunterladen – die Spalten *Größe* und *Stand* lassen sich einzeln ausblenden). Gruppen auf Wunsch **aufklappbar** (alle offen, erste offen oder alle zugeklappt). Farben im Reiter *Darstellung* an das eigene Design anpassen.
 7. **Geschützte Kataloge** (z. B. Preislisten): eigenen Ordner anlegen (z. B. `images/flipbooks-geschuetzt/de/`), ein zweites Modul mit diesem Ordner erstellen, **„Dateien schützen“** einschalten und die **Zugriffsebene** auf *Registriert* bzw. eine eigene Händlergruppe stellen. Direkte Links auf die PDFs sind dann gesperrt; Joomla liefert die Dateien nur nach Prüfung der Anmeldung aus. Auf nginx-Servern einen Ordner außerhalb des Web-Verzeichnisses mit absolutem Pfad verwenden.
 8. **Viewer ohne Modul** (z. B. in einem Beitrag): per iFrame auf `media/mod_pdfflipbook/viewer/index.html?pdf=images/…` einbinden – Pfade **ohne führenden Schrägstrich**, dann funktioniert es auch in Unterordner-Installationen. Im TinyMCE-Editor den Code am besten per Sourcerer einfügen, sonst ergänzt der Editor `sandbox=""` und der Viewer lädt nicht. Details unter [Using the viewer without the module](#using-the-viewer-without-the-module).
-9. **Erscheint nichts:** Im Frontend als Administrator anmelden – das Modul zeigt dann einen Hinweis, in welchem Ordner es gesucht hat. Dreht der Viewer endlos: prüfen, ob die `.js`-Dateien unter `media/mod_pdfflipbook/viewer/` vorhanden sind (manche Virenscanner beim Hoster benennen sie um, z. B. in `.j_`).
+9. **Erscheint nichts:** Im Frontend als Administrator anmelden – das Modul zeigt dann einen Hinweis, in welchem Ordner es gesucht hat. Dreht der Viewer endlos: Ab Version 1.3.2 meldet das Modul fehlende oder umbenannte Viewer-Dateien selbst (nach der Installation und im Frontend für Administratoren). Sonst prüfen, ob die `.js`-Dateien unter `media/mod_pdfflipbook/viewer/` vorhanden sind (manche Virenscanner beim Hoster benennen sie um, z. B. in `.j_`).
 
 ## Support
 

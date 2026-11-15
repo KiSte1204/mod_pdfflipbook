@@ -54,6 +54,18 @@ class Dispatcher extends AbstractModuleDispatcher implements HelperFactoryAwareI
                 $hints[] = Text::_('MOD_PDFFLIPBOOK_WARNING_PUBLIC');
             }
 
+            // Viewer files missing or renamed (e.g. by a virus scanner of the host)
+            if (trim((string) $data['params']->get('viewer_url', '')) === '') {
+                $e = static fn ($v) => htmlspecialchars((string) $v, ENT_QUOTES, 'UTF-8');
+
+                foreach (FlipbookHelper::viewerFileProblems() as [$file, $renamed]) {
+                    $path    = 'media/mod_pdfflipbook/viewer/' . $file;
+                    $hints[] = $renamed !== null
+                        ? Text::sprintf('MOD_PDFFLIPBOOK_WARNING_VIEWER_RENAMED', $e($path), $e($renamed), $e(basename($file)))
+                        : Text::sprintf('MOD_PDFFLIPBOOK_WARNING_VIEWER_MISSING', $e($path));
+                }
+            }
+
             $data['notice'] = implode('<br>', $hints);
         }
 

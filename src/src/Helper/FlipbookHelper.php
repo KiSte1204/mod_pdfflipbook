@@ -859,6 +859,48 @@ class FlipbookHelper
     /**
      * Viewer address: empty = built-in viewer, otherwise relative to the Joomla root or a full URL.
      */
+    /**
+     * Files the built-in viewer needs to start (relative to media/mod_pdfflipbook/viewer).
+     */
+    public const VIEWER_FILES = ['index.html', 'flipbook.js', 'lang.js', 'flipbook.css', 'lib/pdfjs/pdf.min.js', 'lib/pdfjs/pdf.worker.min.js'];
+
+    /**
+     * Checks that the viewer files have arrived on the server. Some hosting virus scanners rename
+     * JavaScript files after the installation (e.g. flipbook.js -> flipbook.j_), the viewer then
+     * keeps loading forever. Nothing is changed, the result is only shown to administrators.
+     *
+     * @return  array<int, array{0: string, 1: string|null}>  [missing file, renamed file found or null]
+     */
+    public static function viewerFileProblems(string $root = JPATH_ROOT): array
+    {
+        $dir      = $root . '/' . \dirname(self::VIEWER_PATH);
+        $problems = [];
+
+        foreach (self::VIEWER_FILES as $file) {
+            if (is_file($dir . '/' . $file)) {
+                continue;
+            }
+
+            // Renamed copy with the same name and another extension (flipbook.j_, flipbook.js.infected …)
+            $name    = pathinfo($file, PATHINFO_FILENAME);
+            $folder  = \dirname($dir . '/' . $file);
+            $renamed = null;
+
+            $known   = array_map('basename', self::VIEWER_FILES);
+
+            foreach (scandir($folder) ?: [] as $entry) {
+                if (!\in_array($entry, $known, true) && str_starts_with($entry, $name . '.') && is_file($folder . '/' . $entry)) {
+                    $renamed = $entry;
+                    break;
+                }
+            }
+
+            $problems[] = [$file, $renamed];
+        }
+
+        return $problems;
+    }
+
     public static function viewerUrl(string $setting, string $root): string
     {
         $setting = trim($setting);
